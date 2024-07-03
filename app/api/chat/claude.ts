@@ -72,26 +72,72 @@ const canadaProvinceFullNames = [
     'Yukon',
 ];
 
-// const stateProperties: { [key: string]: { type: string } } = {};
-// stateFullNames.forEach(state => {
-//     stateProperties[state] = { type: 'number' };
-// });
+const nigeriaStateFullNames = [
+    'Abia',
+    'Adamawa',
+    'Akwa Ibom',
+    'Anambra',
+    'Bauchi',
+    'Bayelsa',
+    'Benue',
+    'Borno',
+    'Cross River',
+    'Delta',
+    'Ebonyi',
+    'Edo',
+    'Ekiti',
+    'Enugu',
+    'Gombe',
+    'Imo',
+    'Jigawa',
+    'Kaduna',
+    'Kano',
+    'Katsina',
+    'Kebbi',
+    'Kogi',
+    'Kwara',
+    'Lagos',
+    'Nasarawa',
+    'Niger',
+    'Ogun',
+    'Ondo',
+    'Osun',
+    'Oyo',
+    'Plateau',
+    'Rivers',
+    'Sokoto',
+    'Taraba',
+    'Yobe',
+    'Zamfara',
+    'Fct, Abuja',
+];
 
-const provinceProperties: { [key: string]: { type: string } } = {};
+export const stateProperties: { [key: string]: { type: string } } = {};
+stateFullNames.forEach(state => {
+    stateProperties[state] = { type: 'number' };
+});
+
+export const provinceProperties: { [key: string]: { type: string } } = {};
 canadaProvinceFullNames.forEach(province => {
     provinceProperties[province] = { type: 'number' };
 });
 
+export const nigeriaStateProperties: { [key: string]: { type: string } } = {};
+nigeriaStateFullNames.forEach(state => {
+    nigeriaStateProperties[state] = { type: 'number' };
+});
+
+
+
 const systemMessage = `
-  You are an assistant that helps a user estimate statistics and visualize them on a map. 
-  You are connected to a front-end interface with a map that is able to display these statistics. 
-  You are asked to take the user's request and estimate the statistic for each canadian province to the best of your ability.
+  You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
+  You are connected to a front-end interface with a map (mapbox light mode) that is able to display these statistics. 
+  This tool can be used for multiple areas and sub-regions. An upstream tool will give you a list of sub-regions for the user's requested area and populate the tool definitions with these sub-regions (for example, counties, states, provinces)
   It's understood that this is not perfect up-to-date information, and it's just an estimate based on your training data. 
-  Nonetheless, it is useful for brainstorming and exploration. 
+  Nonetheless, it is useful for brainstorming and exploration, and you should return the confidence level of the estimates to the user.
 
-  The visualization will be rendered in Mapbox Light mode.
-
-  When providing the estimates and visualizing them on the map, simply confirm to the user that the data has been rendered on the map without over-explaining the internal process. Do not mention the name of the function, this is not necessary for the user to know.
+  **Important** When providing the estimates and visualizing them on the map, simply confirm to the user that the data has been rendered on the map without over-explaining the internal process. 
+  Do not mention the name of the function, this is not necessary for the user to know.
 
   Additionally, you can now visualize categorical statistics, such as the most common fish species in each province. 
   Ensure that the categoryColors object uses category names as keys (e.g., "Bass": "#FF5733") rather than indexes. 
@@ -108,7 +154,7 @@ const systemMessage = `
       "Alaska": "Salmon",
       ...
     },
-    "title": "Most Common Fish Species in Each province",
+    "title": "Estimated Most Common Fish Species in Each Province",
     "categoryColors": {
       "Bass": "#FF5733",
       "Salmon": "#33FF57",
@@ -116,59 +162,24 @@ const systemMessage = `
     }
   } 
 `;
-export const getClaudeResponse = async (messages: any) => {
+export const getClaudeResponse = async (messages: any, subRegions: any) => {
     const msg = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20240620',
         max_tokens: 3000,
         temperature: 0,
         system: systemMessage,
         tools: [
-            // {
-            //     name: 'web_search',
-            //     description:
-            //         'Retrieve search results from the web using SerpApi based on the provided query',
-            //     input_schema: {
-            //         type: 'object',
-            //         properties: {
-            //             query: {
-            //                 type: 'string',
-            //                 description: 'The search query to retrieve information for',
-            //             },
-            //         },
-            //         required: ['query'],
-            //     },
-            // },
-            // {
-            //     name: 'wikipedia_get_full_page',
-            //     description: 'Retrieve the full content of a Wikipedia article based on its title',
-            //     input_schema: {
-            //         type: 'object',
-            //         properties: {
-            //             title: {
-            //                 type: 'string',
-            //                 description: 'The title of the Wikipedia article, e.g., "Artificial Intelligence". This parameter is required to specify the article to retrieve.',
-            //             },
-            //             language: {
-            //                 type: 'string',
-            //                 description: 'The language of the Wikipedia site, e.g., "en" for English. This parameter is optional and defaults to "en".',
-            //                 default: 'en',
-            //             },
-            //         },
-            //         required: ['title'],
-            //     },
-            // },
             {
-                name: 'state_stats_estimates',
-                description: 'Provide estimated continous statistic for all US states',
+                name: 'continuous_stats_estimates',
+                description: 'Provide estimated continous statistic for all sub-regions',
                 input_schema: {
                     type: 'object',
                     properties: {
                         estimates: {
                             type: 'object',
                             description:
-                                'An object with US state names as keys and estimated values as values',
-                            properties: provinceProperties,
-                            // required: stateFullNames,
+                                'An object with sub-region names as keys and estimated values',
+                            properties: subRegions,
                         },
                         title: {
                             type: 'string',
@@ -194,9 +205,9 @@ export const getClaudeResponse = async (messages: any) => {
                                 'Description for the side of the legend corresponding to color2 (e.g., High)',
                         },
                         confidence: {
-                            type: 'number',
-                            description: 'Confidence level of the estimates (low, medium, high)'
-                        }
+                            type: 'string',
+                            description: 'Confidence level of the estimates (Low, Medium, High)',
+                        },
                     },
                     required: [
                         'estimates',
@@ -205,22 +216,21 @@ export const getClaudeResponse = async (messages: any) => {
                         'color2',
                         'legendSide1',
                         'legendSide2',
-                        'confidence'
+                        'confidence',
                     ],
                 },
             },
             {
-                name: 'state_categorical_stats',
-                description: 'Provide estimated categorical statistic for all US states',
+                name: 'category_stats_estimates',
+                description: 'Provide estimated categorical statistic for all sub-regions',
                 input_schema: {
                     type: 'object',
                     properties: {
                         estimates: {
                             type: 'object',
                             description:
-                                'An object with US state names as keys and estimated categorical values as values',
-                            properties: provinceProperties,
-                            // required: stateFullNames,
+                                'An object with sub-region names as keys and estimated values',
+                            properties: subRegions,
                         },
                         title: {
                             type: 'string',
@@ -231,9 +241,9 @@ export const getClaudeResponse = async (messages: any) => {
                             description: 'An object mapping category names to colors',
                         },
                         confidence: {
-                            type: 'number',
-                            description: 'Confidence level of the estimates (low, medium, high)'
-                        }
+                            type: 'string',
+                            description: 'Confidence level of the estimates (Low, Medium, High)',
+                        },
                     },
                     required: ['categories', 'title', 'categoryColors', 'confidence'],
                 },
@@ -244,17 +254,20 @@ export const getClaudeResponse = async (messages: any) => {
     return msg;
 };
 
-export const getClaudeResponseAndHandleToolCall = async (messages: any): Promise<any> => {
+export const getClaudeResponseAndHandleToolCall = async (
+    messages: any,
+    subRegions: any,
+): Promise<any> => {
     const filteredMessages = messages.map((m: any) => {
         const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m;
         return rest;
     });
-    const result = await getClaudeResponse(filteredMessages);
+    const result = await getClaudeResponse(filteredMessages, subRegions);
     if (result.stop_reason === 'tool_use') {
         const toolCall = result.content.find(item => item.type === 'tool_use') as any;
         const { name, id } = toolCall;
         let nextMessage;
-        if (name === 'state_stats_estimates' || name === 'state_categorical_stats') {
+        if (name === 'continuous_stats_estimates' || name === 'category_stats_estimates') {
             nextMessage = {
                 role: 'user',
                 content: [
@@ -280,7 +293,8 @@ export const getClaudeResponseAndHandleToolCall = async (messages: any): Promise
         }
 
         const allMessages = [...messages, result, nextMessage];
-        return getClaudeResponseAndHandleToolCall(allMessages);
+        // TODO: maybe keep a counter to prevent infinite loop in recursion (and not allow tool use if so on final loop)
+        return getClaudeResponseAndHandleToolCall(allMessages, subRegions);
     } else {
         return [...messages, result];
     }
