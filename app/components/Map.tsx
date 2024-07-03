@@ -6,7 +6,6 @@ import { GeoJsonLayer } from '@deck.gl/layers';
 import { useState, useEffect, useContext, useMemo } from 'react';
 import * as turf from '@turf/turf';
 
-// import canadaProvincesGeojson from './canada_regions_geojson.json';
 import { MapViewState, WebMercatorViewport } from '@deck.gl/core';
 import { MapStateContext } from '../state/context';
 import Color from 'color';
