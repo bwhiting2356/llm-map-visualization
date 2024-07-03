@@ -1,8 +1,0 @@
-{
-    "functions": {
-        "api/chat.ts": {
-            "memory": 1024,
-            "maxDuration": 25
-        }
-    }
-}

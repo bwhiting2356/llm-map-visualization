@@ -127,8 +127,6 @@ nigeriaStateFullNames.forEach(state => {
     nigeriaStateProperties[state] = { type: 'number' };
 });
 
-
-
 const systemMessage = `
   You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
   You are connected to a front-end interface with a map (mapbox light mode) that is able to display these statistics. 
