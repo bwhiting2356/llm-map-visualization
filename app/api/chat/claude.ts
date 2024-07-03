@@ -193,6 +193,10 @@ export const getClaudeResponse = async (messages: any) => {
                             description:
                                 'Description for the side of the legend corresponding to color2 (e.g., High)',
                         },
+                        confidence: {
+                            type: 'number',
+                            description: 'Confidence level of the estimates (low, medium, high)'
+                        }
                     },
                     required: [
                         'estimates',
@@ -201,6 +205,7 @@ export const getClaudeResponse = async (messages: any) => {
                         'color2',
                         'legendSide1',
                         'legendSide2',
+                        'confidence'
                     ],
                 },
             },
@@ -225,8 +230,12 @@ export const getClaudeResponse = async (messages: any) => {
                             type: 'object',
                             description: 'An object mapping category names to colors',
                         },
+                        confidence: {
+                            type: 'number',
+                            description: 'Confidence level of the estimates (low, medium, high)'
+                        }
                     },
-                    required: ['categories', 'title', 'categoryColors'],
+                    required: ['categories', 'title', 'categoryColors', 'confidence'],
                 },
             },
         ],

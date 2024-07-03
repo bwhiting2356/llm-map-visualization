@@ -71,7 +71,7 @@ type Tooltip = {
 
 export const Map = () => {
     const {
-        data: { estimates, title, color1 = '', color2 = '', categoryColors },
+        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence },
     } = useContext(MapStateContext);
 
     const [minValue, setMinValue] = useState<number>(0);
@@ -195,6 +195,14 @@ export const Map = () => {
                     projection={{ name: 'mercator' }}
                 />
             </DeckGL>
+            {
+                confidence && (
+                    <div className="absolute top-4 right-4 bg-white border-gray-100 rounded px-2 py-1 text-gray-700 text-sm text-right">
+                        <div className="text-gray-700">Confidence</div>
+                        <div className="text-gray-500">{confidence}</div>
+                    </div>
+                )
+            }
             {title && (
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white border-gray-100 rounded px-2 py-1 text-gray-700">
                     {title}

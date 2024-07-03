@@ -14,6 +14,7 @@ interface MapStateType {
         color1?: string;
         color2?: string;
         categoryColors?: { [key: string]: string };
+        confidence?: string;
     };
     setData: any;
 }
@@ -26,6 +27,7 @@ const initialData = {
     legendSide1: '',
     legendSide2: '',
     categoryColors: {},
+    confidence: ''
 };
 
 const initialContextState: MapStateType = {
