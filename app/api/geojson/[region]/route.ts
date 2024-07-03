@@ -5,9 +5,6 @@ export async function GET(req: Request) {
     const { pathname } = new URL(req.url);
     const region = pathname.split('/').pop();
 
-    console.log('pathname', pathname);
-    console.log('region', region);
-
     // Type checking to ensure region is a string
     if (typeof region !== 'string' || !region) {
         return new Response(JSON.stringify({ error: 'Invalid region parameter' }), {
