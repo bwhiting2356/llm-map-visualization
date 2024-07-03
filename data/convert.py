@@ -8,7 +8,7 @@ def convert_geojson(input_file, output_file):
     # Define a function to map properties
     def map_properties(properties):
         new_properties = {
-            "NAME": properties.get("prov_name_en", [""])[0]
+            "NAME": properties.get("neighborhood", '')
         }
         return new_properties
     
@@ -23,6 +23,6 @@ def convert_geojson(input_file, output_file):
     print(f"Converted GeoJSON saved to {output_file}")
 
 # Example usage
-input_file = 'new_geojson.json'  # Update this to your input file path
-output_file = 'converted_canada_geojson.json'
+input_file = 'san-francisco-original.json'  # Update this to your input file path
+output_file = 'san-francisco.json'
 convert_geojson(input_file, output_file)

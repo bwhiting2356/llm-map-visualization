@@ -27,7 +27,7 @@ const initialData = {
     legendSide1: '',
     legendSide2: '',
     categoryColors: {},
-    confidence: ''
+    confidence: '',
 };
 
 const initialContextState: MapStateType = {
