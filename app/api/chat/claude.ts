@@ -1,136 +1,108 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { searchWeb } from './serp-api';
 
+import { Pinecone } from '@pinecone-database/pinecone';
+
+const pc = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY || '',
+});
+
 const anthropic = new Anthropic();
 
-const stateFullNames = [
-    'Alabama',
-    'Alaska',
-    'Arizona',
-    'Arkansas',
-    'California',
-    'Colorado',
-    'Connecticut',
-    'Delaware',
-    'Florida',
-    'Georgia',
-    'Hawaii',
-    'Idaho',
-    'Illinois',
-    'Indiana',
-    'Iowa',
-    'Kansas',
-    'Kentucky',
-    'Louisiana',
-    'Maine',
-    'Maryland',
-    'Massachusetts',
-    'Michigan',
-    'Minnesota',
-    'Mississippi',
-    'Missouri',
-    'Montana',
-    'Nebraska',
-    'Nevada',
-    'New Hampshire',
-    'New Jersey',
-    'New Mexico',
-    'New York',
-    'North Carolina',
-    'North Dakota',
-    'Ohio',
-    'Oklahoma',
-    'Oregon',
-    'Pennsylvania',
-    'Rhode Island',
-    'South Carolina',
-    'South Dakota',
-    'Tennessee',
-    'Texas',
-    'Utah',
-    'Vermont',
-    'Virginia',
-    'Washington',
-    'West Virginia',
-    'Wisconsin',
-    'Wyoming',
-];
+const voyageApiUrl = 'https://api.voyageai.com/v1/embeddings';
+const getEmbedding = async (text: string) => {
+    const voyageApiKey = process.env.VOYAGE_API_KEY;
 
-const canadaProvinceFullNames = [
-    'Alberta',
-    'British Columbia',
-    'Manitoba',
-    'New Brunswick',
-    'Newfoundland and Labrador',
-    'Nova Scotia',
-    'Ontario',
-    'Prince Edward Island',
-    'Quebec',
-    'Saskatchewan',
-    'Northwest Territories',
-    'Nunavut',
-    'Yukon',
-];
+    const payload = {
+        input: [text],
+        model: 'voyage-large-2'
+    };
 
-const nigeriaStateFullNames = [
-    'Abia',
-    'Adamawa',
-    'Akwa Ibom',
-    'Anambra',
-    'Bauchi',
-    'Bayelsa',
-    'Benue',
-    'Borno',
-    'Cross River',
-    'Delta',
-    'Ebonyi',
-    'Edo',
-    'Ekiti',
-    'Enugu',
-    'Gombe',
-    'Imo',
-    'Jigawa',
-    'Kaduna',
-    'Kano',
-    'Katsina',
-    'Kebbi',
-    'Kogi',
-    'Kwara',
-    'Lagos',
-    'Nasarawa',
-    'Niger',
-    'Ogun',
-    'Ondo',
-    'Osun',
-    'Oyo',
-    'Plateau',
-    'Rivers',
-    'Sokoto',
-    'Taraba',
-    'Yobe',
-    'Zamfara',
-    'Fct, Abuja',
-];
+    try {
+        const response = await fetch(voyageApiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${voyageApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
 
-export const stateProperties: { [key: string]: { type: string } } = {};
-stateFullNames.forEach(state => {
-    stateProperties[state] = { type: 'number' };
-});
+        if (!response.ok) {
+            throw new Error(`Voyage API returned an error: ${response.statusText}`);
+        }
 
-export const provinceProperties: { [key: string]: { type: string } } = {};
-canadaProvinceFullNames.forEach(province => {
-    provinceProperties[province] = { type: 'number' };
-});
+        const data = await response.json();
+        return data.data[0].embedding;
+    } catch (error) {
+        console.error('Error fetching embedding from Voyage API:', error);
+        throw error;
+    }
+};
 
-export const nigeriaStateProperties: { [key: string]: { type: string } } = {};
-nigeriaStateFullNames.forEach(state => {
-    nigeriaStateProperties[state] = { type: 'number' };
-});
+const performSimilaritySearch = async (embedding: number[]) => {
+    try {
+        const index = pc.Index(process.env.PINECONE_INDEX_NAME || '');
+        const query = {
+            vector: embedding,
+            topK: 1,
+            includeMetadata: true
+        };
+
+        const searchResult = await index.query(query);
+        return searchResult.matches[0];
+    } catch (error) {
+        console.error('Error performing similarity search with Pinecone:', error);
+        throw error;
+    }
+};
+
+const ragHelperSystemMessage = `
+You are a helper that's assistinga downstream process. 
+This system is trying to estimate statistics for a region, and subregions within it, and visualize them on a map.
+Your job is to take the message context and figture out which region the user is asking about. 
+This will then be passed into a similarity search to match what existing in the database.
+The database records look somethign like this: 
+
+{
+    region: "United States",
+    subregions: ["Alabama", "Alaska", ...],
+}
+
+Please return a similar object with the region and subregions that you think the user is asking about. 
+It is not necessary for the subregion list to be exhaustive, just enough for a similarity search to be able to match.
+***IMPORTANT*** return only the json object for the region, no other explanation is needed.
+`
+
+
+export const geojsonRagHelper = async (messages: any) => {
+    const result = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 3000,
+        temperature: 0,
+        system: ragHelperSystemMessage,
+        messages: [
+            {
+                role: 'user',
+                content: JSON.stringify(messages)
+            }
+        ],
+    }); 
+    const textToEmbed = (result.content[0] as any).text;
+    const embedding = await getEmbedding(textToEmbed);
+    const topResult = await performSimilaritySearch(embedding);
+    return topResult?.metadata;
+}
 
 const systemMessage = `
   You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
   You are connected to a front-end interface with a map (mapbox light mode) that is able to display these statistics. 
-  This tool can be used for multiple areas and sub-regions. An upstream tool will give you a list of sub-regions for the user's requested area and populate the tool definitions with these sub-regions (for example, counties, states, provinces)
+  This tool can be used for multiple areas and sub-regions. 
+  
+  An upstream RAG process will give you a list of sub-regions for the user's requested area 
+  and populate the tool definitions with these sub-regions (for example, counties, states, provinces). However, it's possible we don't actually
+  have the user's requested region in the database. If it appears not to match based on the context, please give an appropriate response
+  rather than moving formward. The region in the RAG result is : {{ REGION }}
   It's understood that this is not perfect up-to-date information, and it's just an estimate based on your training data. 
   Nonetheless, it is useful for brainstorming and exploration, and you should return the confidence level of the estimates to the user.
 
@@ -140,10 +112,12 @@ const systemMessage = `
   Additionally, you can now visualize categorical statistics, such as the most common fish species in each province. 
   Ensure that the categoryColors object uses category names as keys (e.g., "Bass": "#FF5733") rather than indexes. 
   When providing categorical statistics, always return the category names rather than indexes in the estimates. Mentioning the category names to the user is unecessary as they will see it in the legend.
+  The color pallete should provide enough contrast, be appropriate for the data being visualized, and be visually appealing.
 
   It is crucial to provide accurate and consistent data based on well-known, widely accepted information. 
   Avoid introducing unnecessary variety or less common options. Base your estimates on the most popular and widely recognized statistics.
-  When you respond in text format, please respond in markdown when possible. The response should be concise and mention general trends.
+  When you respond in text format, please respond in markdown when possible. The response should be concise and mention general trends. 
+  If you're asking for clarification please be concise.
 
   Example of the correct format:
   {
@@ -160,12 +134,19 @@ const systemMessage = `
     }
   } 
 `;
-export const getClaudeResponse = async (messages: any, subRegions: any) => {
+
+const buildSystemMessage = (regionRAGResult: any) => systemMessage.replace('{{ REGION }}', regionRAGResult.region);
+
+export const getClaudeResponse = async (messages: any, regionRAGResult: any) => {
+    const formattedSubregions = regionRAGResult.subregions.reduce((acc: any, subregion: string) => {
+        acc[subregion] = { type: 'number' };
+        return acc;
+    }, {});
     const msg = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20240620',
         max_tokens: 3000,
         temperature: 0,
-        system: systemMessage,
+        system: buildSystemMessage(regionRAGResult),
         tools: [
             {
                 name: 'continuous_stats_estimates',
@@ -177,7 +158,7 @@ export const getClaudeResponse = async (messages: any, subRegions: any) => {
                             type: 'object',
                             description:
                                 'An object with sub-region names as keys and estimated values',
-                            properties: subRegions,
+                            properties: formattedSubregions,
                         },
                         title: {
                             type: 'string',
@@ -206,6 +187,10 @@ export const getClaudeResponse = async (messages: any, subRegions: any) => {
                             type: 'string',
                             description: 'Confidence level of the estimates (Low, Medium, High)',
                         },
+                        regionKey: {
+                            type: 'string',
+                            description: 'The name of the {{ REGION }} key to pass back to the client',
+                        }
                     },
                     required: [
                         'estimates',
@@ -215,6 +200,7 @@ export const getClaudeResponse = async (messages: any, subRegions: any) => {
                         'legendSide1',
                         'legendSide2',
                         'confidence',
+                        'regionKey'
                     ],
                 },
             },
@@ -228,7 +214,7 @@ export const getClaudeResponse = async (messages: any, subRegions: any) => {
                             type: 'object',
                             description:
                                 'An object with sub-region names as keys and estimated values',
-                            properties: subRegions,
+                            properties: formattedSubregions,
                         },
                         title: {
                             type: 'string',
@@ -236,14 +222,18 @@ export const getClaudeResponse = async (messages: any, subRegions: any) => {
                         },
                         categoryColors: {
                             type: 'object',
-                            description: 'An object mapping category names to colors',
+                            description: 'An object mapping category names to colors (only include categories that are in the estimates)',
                         },
                         confidence: {
                             type: 'string',
                             description: 'Confidence level of the estimates (Low, Medium, High)',
                         },
+                        regionKey: {
+                            type: 'string',
+                            description: 'The name of the {{ REGION }} key to pass back to the client',
+                        }
                     },
-                    required: ['categories', 'title', 'categoryColors', 'confidence'],
+                    required: ['categories', 'title', 'categoryColors', 'confidence', 'regionKey'],
                 },
             },
         ],
@@ -254,13 +244,13 @@ export const getClaudeResponse = async (messages: any, subRegions: any) => {
 
 export const getClaudeResponseAndHandleToolCall = async (
     messages: any,
-    subRegions: any,
+    regionRAGResult: any
 ): Promise<any> => {
     const filteredMessages = messages.map((m: any) => {
         const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m;
         return rest;
     });
-    const result = await getClaudeResponse(filteredMessages, subRegions);
+    const result = await getClaudeResponse(filteredMessages, regionRAGResult);
     if (result.stop_reason === 'tool_use') {
         const toolCall = result.content.find(item => item.type === 'tool_use') as any;
         const { name, id } = toolCall;
@@ -292,7 +282,7 @@ export const getClaudeResponseAndHandleToolCall = async (
 
         const allMessages = [...messages, result, nextMessage];
         // TODO: maybe keep a counter to prevent infinite loop in recursion (and not allow tool use if so on final loop)
-        return getClaudeResponseAndHandleToolCall(allMessages, subRegions);
+        return getClaudeResponseAndHandleToolCall(allMessages, regionRAGResult);
     } else {
         return [...messages, result];
     }

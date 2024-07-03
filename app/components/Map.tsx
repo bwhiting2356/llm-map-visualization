@@ -32,9 +32,9 @@ type Tooltip = {
 
 export const Map = () => {
     const {
-        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence },
+        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence, regionKey },
     } = useContext(MapStateContext);
-    const { data: geojson, error, isLoading } = useGeoJson('nigeria');
+    const { data: geojson, error, isLoading } = useGeoJson(regionKey);
 
     const [minValue, setMinValue] = useState<number>(0);
     const [maxValue, setMaxValue] = useState<number>(0);

@@ -1,15 +1,17 @@
-export const maxDuration = 35; // This function can run for a maximum of 5 seconds
-
+export const maxDuration = 35;
 
 import {
+    geojsonRagHelper,
     getClaudeResponseAndHandleToolCall,
-    nigeriaStateProperties,
-    provinceProperties,
-    stateProperties,
 } from './claude';
 
 export async function POST(req: Request) {
     const { messages } = await req.json();
-    const result = await getClaudeResponseAndHandleToolCall(messages, nigeriaStateProperties);
+    const filteredMessages = messages.map((m: any) => { // TODO: make this a helper function
+        const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m;
+        return rest;
+    });
+    const regionRAGResult = await geojsonRagHelper(filteredMessages);
+    const result = await getClaudeResponseAndHandleToolCall(messages, regionRAGResult);
     return Response.json(result);
 }
