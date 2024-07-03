@@ -18,12 +18,12 @@ const useChat = () => {
             .find(
                 message =>
                     message?.role === 'assistant' &&
-                    message?.content?.some(contentItem => contentItem.type === 'tool_use'),
+                    message?.content?.some((contentItem: any) => contentItem.type === 'tool_use'),
             );
 
         if (lastToolUseMessage) {
             const toolResult = lastToolUseMessage.content.find(
-                contentItem => contentItem.type === 'tool_use',
+                (contentItem: any) => contentItem.type === 'tool_use',
             )?.input;
             setData(toolResult);
         }

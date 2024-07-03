@@ -23,31 +23,31 @@ const interpolateColor = (
     return Color(startColor).mix(Color(endColor), ratio).rgb().array();
 };
 
-const extractCoordinates = (geometry, coordinates) => {
+const extractCoordinates = (geometry: any, coordinates: any) => {
     if (geometry.type === 'Point') {
         coordinates.push(geometry.coordinates);
     } else if (geometry.type === 'MultiPoint' || geometry.type === 'LineString') {
-        geometry.coordinates.forEach(coord => coordinates.push(coord));
+        geometry.coordinates.forEach((coord: any) => coordinates.push(coord));
     } else if (geometry.type === 'MultiLineString' || geometry.type === 'Polygon') {
-        geometry.coordinates.forEach(coordGroup =>
-            coordGroup.forEach(coord => coordinates.push(coord)),
+        geometry.coordinates.forEach((coordGroup: any) =>
+            coordGroup.forEach((coord: any) => coordinates.push(coord)),
         );
     } else if (geometry.type === 'MultiPolygon') {
-        geometry.coordinates.forEach(polygon =>
-            polygon.forEach(coordGroup => coordGroup.forEach(coord => coordinates.push(coord))),
+        geometry.coordinates.forEach((polygon: any) =>
+            polygon.forEach((coordGroup: any) => coordGroup.forEach((coord: any) => coordinates.push(coord))),
         );
     }
 };
 
-const calculateBoundingBox = geojson => {
+const calculateBoundingBox = (geojson: any) => {
     try {
-        const coordinates = [];
-        geojson.features.forEach(feature => {
+        const coordinates: any = [];
+        geojson.features.forEach((feature: any) => {
             extractCoordinates(feature.geometry, coordinates);
         });
 
-        const longitudes = coordinates.map(coord => coord[0]);
-        const latitudes = coordinates.map(coord => coord[1]);
+        const longitudes = coordinates.map((coord: any) => coord[0]);
+        const latitudes = coordinates.map((coord: any) => coord[1]);
         if (longitudes.length === 0 || latitudes.length === 0) return null;
         const bounds = [
             [Math.min(...longitudes), Math.min(...latitudes)],
@@ -102,7 +102,7 @@ export const Map = () => {
         // Merge state data into GeoJSON
         const mergedData = {
             ...usStatesGeojson,
-            features: usStatesGeojson.features.map(feature => {
+            features: (usStatesGeojson as any).features.map((feature: any) => {
                 const stateName = feature.properties.NAME;
                 const stateData = estimatesArray.find(item => item.state === stateName);
                 return {
@@ -153,7 +153,7 @@ export const Map = () => {
                         const category = d.properties.value;
                         const color = categoryColors[category];
                         if (color) {
-                            return Color(color).rgb().array().concat(200);
+                            return Color(color).rgb().array().concat(200) as [number, number, number, number];
                         }
                         return [255, 255, 255, 200] as [number, number, number, number];
                     }

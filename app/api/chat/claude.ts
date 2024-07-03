@@ -215,7 +215,7 @@ export const getClaudeResponse = async (messages: any) => {
 };
 
 export const getClaudeResponseAndHandleToolCall = async (messages: any): Promise<any> => {
-    const filteredMessages = messages.map(m => {
+    const filteredMessages = messages.map((m: any) => {
         const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m;
         return rest;
     });
