@@ -4,10 +4,10 @@ import DeckGL from '@deck.gl/react';
 import { Map as MapGL } from 'react-map-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { useState, useEffect, useContext, useMemo } from 'react';
+import * as turf from '@turf/turf';
 
-// import usStatesGeojson from './us_states_geojson.json';
-import canadaProvincesGeojson from './new_geojson.json';
-import { MapViewState } from '@deck.gl/core';
+import canadaProvincesGeojson from './canada_regions_geojson.json';
+import { MapViewState, WebMercatorViewport } from '@deck.gl/core';
 import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
@@ -21,45 +21,6 @@ const interpolateColor = (
 ) => {
     const ratio = (value - min) / (max - min);
     return Color(startColor).mix(Color(endColor), ratio).rgb().array();
-};
-
-const extractCoordinates = (geometry: any, coordinates: any) => {
-    if (geometry.type === 'Point') {
-        coordinates.push(geometry.coordinates);
-    } else if (geometry.type === 'MultiPoint' || geometry.type === 'LineString') {
-        geometry.coordinates.forEach((coord: any) => coordinates.push(coord));
-    } else if (geometry.type === 'MultiLineString' || geometry.type === 'Polygon') {
-        geometry.coordinates.forEach((coordGroup: any) =>
-            coordGroup.forEach((coord: any) => coordinates.push(coord)),
-        );
-    } else if (geometry.type === 'MultiPolygon') {
-        geometry.coordinates.forEach((polygon: any) =>
-            polygon.forEach((coordGroup: any) =>
-                coordGroup.forEach((coord: any) => coordinates.push(coord)),
-            ),
-        );
-    }
-};
-
-const calculateBoundingBox = (geojson: any) => {
-    try {
-        const coordinates: any = [];
-        geojson.features.forEach((feature: any) => {
-            extractCoordinates(feature.geometry, coordinates);
-        });
-
-        const longitudes = coordinates.map((coord: any) => coord[0]);
-        const latitudes = coordinates.map((coord: any) => coord[1]);
-        if (longitudes.length === 0 || latitudes.length === 0) return null;
-        const bounds = [
-            [Math.min(...longitudes), Math.min(...latitudes)],
-            [Math.max(...longitudes), Math.max(...latitudes)],
-        ];
-        return bounds;
-    } catch (error) {
-        console.error('Error calculating bounding box:', error);
-        return null;
-    }
 };
 
 type Tooltip = {
@@ -104,7 +65,7 @@ export const Map = () => {
         const mergedData = {
             ...canadaProvincesGeojson,
             features: (canadaProvincesGeojson as any).features.map((feature: any) => {
-                const stateName = feature.properties.prov_name_en[0];
+                const stateName = feature.properties.NAME;
                 const stateData = estimatesArray.find(item => item.state === stateName);
                 return {
                     ...feature,
@@ -119,21 +80,20 @@ export const Map = () => {
         // Load the merged GeoJSON data
         setData(mergedData);
 
-        // Calculate the bounding box of the GeoJSON data
-        // const bounds = calculateBoundingBox(mergedData);
-        // if (bounds) {
-        //     const viewport = new WebMercatorViewport({
-        //         width: window.innerWidth,
-        //         height: window.innerHeight,
-        //     }).fitBounds(bounds, { padding: 20 });
+        // Calculate the bounding box of the GeoJSON data using Turf.js
+        const bbox = turf.bbox(mergedData as any);
+        if (bbox) {
+            const viewport = new WebMercatorViewport({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            }).fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { padding: 20 });
 
-        //     setViewState({
-        //         ...viewport,
-        //         longitude: viewport.longitude,
-        //         latitude: viewport.latitude,
-        //         zoom: viewport.zoom,
-        //     });
-        // }
+            setViewState({
+                longitude: viewport.longitude,
+                latitude: viewport.latitude,
+                zoom: viewport.zoom,
+            });
+        }
     }, [estimates]);
 
     const geoJsonLayer = useMemo(
@@ -214,7 +174,7 @@ export const Map = () => {
                     className="absolute bg-white p-2 rounded shadow text-sm"
                     style={{ left: tooltip.x + 10, top: tooltip.y + 10 }}
                 >
-                    <div className="text-gray-800">{tooltip.name}</div>
+                    <div className="text-gray">{tooltip.name}</div>
                     <div className="text-gray-500">Value: {tooltip.value}</div>
                 </div>
             )}
