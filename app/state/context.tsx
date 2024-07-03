@@ -29,7 +29,7 @@ const initialData = {
     legendSide2: '',
     categoryColors: {},
     confidence: '',
-    regionKey: ''
+    regionKey: '',
 };
 
 const initialContextState: MapStateType = {

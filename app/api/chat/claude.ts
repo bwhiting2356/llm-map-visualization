@@ -15,17 +15,17 @@ const getEmbedding = async (text: string) => {
 
     const payload = {
         input: [text],
-        model: 'voyage-large-2'
+        model: 'voyage-large-2',
     };
 
     try {
         const response = await fetch(voyageApiUrl, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${voyageApiKey}`,
-                'Content-Type': 'application/json'
+                Authorization: `Bearer ${voyageApiKey}`,
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -46,7 +46,7 @@ const performSimilaritySearch = async (embedding: number[]) => {
         const query = {
             vector: embedding,
             topK: 1,
-            includeMetadata: true
+            includeMetadata: true,
         };
 
         const searchResult = await index.query(query);
@@ -72,8 +72,7 @@ The database records look somethign like this:
 Please return a similar object with the region and subregions that you think the user is asking about. 
 It is not necessary for the subregion list to be exhaustive, just enough for a similarity search to be able to match.
 ***IMPORTANT*** return only the json object for the region, no other explanation is needed.
-`
-
+`;
 
 export const geojsonRagHelper = async (messages: any) => {
     const result = await anthropic.messages.create({
@@ -84,15 +83,15 @@ export const geojsonRagHelper = async (messages: any) => {
         messages: [
             {
                 role: 'user',
-                content: JSON.stringify(messages)
-            }
+                content: JSON.stringify(messages),
+            },
         ],
-    }); 
+    });
     const textToEmbed = (result.content[0] as any).text;
     const embedding = await getEmbedding(textToEmbed);
     const topResult = await performSimilaritySearch(embedding);
     return topResult?.metadata;
-}
+};
 
 const systemMessage = `
   You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
@@ -135,7 +134,8 @@ const systemMessage = `
   } 
 `;
 
-const buildSystemMessage = (regionRAGResult: any) => systemMessage.replace('{{ REGION }}', regionRAGResult.region);
+const buildSystemMessage = (regionRAGResult: any) =>
+    systemMessage.replace('{{ REGION }}', regionRAGResult.region);
 
 export const getClaudeResponse = async (messages: any, regionRAGResult: any) => {
     const formattedSubregions = regionRAGResult.subregions.reduce((acc: any, subregion: string) => {
@@ -189,8 +189,9 @@ export const getClaudeResponse = async (messages: any, regionRAGResult: any) => 
                         },
                         regionKey: {
                             type: 'string',
-                            description: 'The name of the {{ REGION }} key to pass back to the client',
-                        }
+                            description:
+                                'The name of the {{ REGION }} key to pass back to the client (this is the top level region, not subdivision)',
+                        },
                     },
                     required: [
                         'estimates',
@@ -200,7 +201,7 @@ export const getClaudeResponse = async (messages: any, regionRAGResult: any) => 
                         'legendSide1',
                         'legendSide2',
                         'confidence',
-                        'regionKey'
+                        'regionKey',
                     ],
                 },
             },
@@ -222,7 +223,8 @@ export const getClaudeResponse = async (messages: any, regionRAGResult: any) => 
                         },
                         categoryColors: {
                             type: 'object',
-                            description: 'An object mapping category names to colors (only include categories that are in the estimates)',
+                            description:
+                                'An object mapping category names to colors (only include categories that are in the estimates)',
                         },
                         confidence: {
                             type: 'string',
@@ -230,8 +232,9 @@ export const getClaudeResponse = async (messages: any, regionRAGResult: any) => 
                         },
                         regionKey: {
                             type: 'string',
-                            description: 'The name of the {{ REGION }} key to pass back to the client',
-                        }
+                            description:
+                                'The name of the {{ REGION }} key to pass back to the client',
+                        },
                     },
                     required: ['categories', 'title', 'categoryColors', 'confidence', 'regionKey'],
                 },
@@ -244,7 +247,7 @@ export const getClaudeResponse = async (messages: any, regionRAGResult: any) => 
 
 export const getClaudeResponseAndHandleToolCall = async (
     messages: any,
-    regionRAGResult: any
+    regionRAGResult: any,
 ): Promise<any> => {
     const filteredMessages = messages.map((m: any) => {
         const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m;
