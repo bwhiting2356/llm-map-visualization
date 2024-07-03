@@ -56,15 +56,36 @@ const stateFullNames = [
     'Wyoming',
 ];
 
-const stateProperties: { [key: string]: { type: string } } = {};
-stateFullNames.forEach(state => {
-    stateProperties[state] = { type: 'number' };
+const canadaProvinceFullNames = [
+    'Alberta',
+    'British Columbia',
+    'Manitoba',
+    'New Brunswick',
+    'Newfoundland and Labrador',
+    'Nova Scotia',
+    'Ontario',
+    'Prince Edward Island',
+    'Quebec',
+    'Saskatchewan',
+    'Northwest Territories',
+    'Nunavut',
+    'Yukon',
+];
+
+// const stateProperties: { [key: string]: { type: string } } = {};
+// stateFullNames.forEach(state => {
+//     stateProperties[state] = { type: 'number' };
+// });
+
+const provinceProperties: { [key: string]: { type: string } } = {};
+canadaProvinceFullNames.forEach(province => {
+    provinceProperties[province] = { type: 'number' };
 });
 
 const systemMessage = `
   You are an assistant that helps a user estimate statistics and visualize them on a map. 
   You are connected to a front-end interface with a map that is able to display these statistics. 
-  You are asked to take the user's request and estimate the statistic for each US state to the best of your ability.
+  You are asked to take the user's request and estimate the statistic for each canadian province to the best of your ability.
   It's understood that this is not perfect up-to-date information, and it's just an estimate based on your training data. 
   Nonetheless, it is useful for brainstorming and exploration. 
 
@@ -72,7 +93,7 @@ const systemMessage = `
 
   When providing the estimates and visualizing them on the map, simply confirm to the user that the data has been rendered on the map without over-explaining the internal process. Do not mention the name of the function, this is not necessary for the user to know.
 
-  Additionally, you can now visualize categorical statistics, such as the most common fish species in each state. 
+  Additionally, you can now visualize categorical statistics, such as the most common fish species in each province. 
   Ensure that the categoryColors object uses category names as keys (e.g., "Bass": "#FF5733") rather than indexes. 
   When providing categorical statistics, always return the category names rather than indexes in the estimates. Mentioning the category names to the user is unecessary as they will see it in the legend.
 
@@ -87,7 +108,7 @@ const systemMessage = `
       "Alaska": "Salmon",
       ...
     },
-    "title": "Most Common Fish Species in Each State",
+    "title": "Most Common Fish Species in Each province",
     "categoryColors": {
       "Bass": "#FF5733",
       "Salmon": "#33FF57",
@@ -146,7 +167,7 @@ export const getClaudeResponse = async (messages: any) => {
                             type: 'object',
                             description:
                                 'An object with US state names as keys and estimated values as values',
-                            properties: stateProperties,
+                            properties: provinceProperties,
                             // required: stateFullNames,
                         },
                         title: {
@@ -193,7 +214,7 @@ export const getClaudeResponse = async (messages: any) => {
                             type: 'object',
                             description:
                                 'An object with US state names as keys and estimated categorical values as values',
-                            properties: stateProperties,
+                            properties: provinceProperties,
                             // required: stateFullNames,
                         },
                         title: {

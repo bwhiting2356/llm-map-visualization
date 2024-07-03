@@ -5,8 +5,8 @@ import { Map as MapGL } from 'react-map-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { useState, useEffect, useContext, useMemo } from 'react';
 
-import usStatesGeojson from './us_states_geojson.json';
-// import canadaProvincesGeojson from './canada_provinces_geojson.json';
+// import usStatesGeojson from './us_states_geojson.json';
+import canadaProvincesGeojson from './new_geojson.json';
 import { MapViewState } from '@deck.gl/core';
 import { MapStateContext } from '../state/context';
 import Color from 'color';
@@ -34,7 +34,9 @@ const extractCoordinates = (geometry: any, coordinates: any) => {
         );
     } else if (geometry.type === 'MultiPolygon') {
         geometry.coordinates.forEach((polygon: any) =>
-            polygon.forEach((coordGroup: any) => coordGroup.forEach((coord: any) => coordinates.push(coord))),
+            polygon.forEach((coordGroup: any) =>
+                coordGroup.forEach((coord: any) => coordinates.push(coord)),
+            ),
         );
     }
 };
@@ -67,7 +69,6 @@ type Tooltip = {
     y: number;
 };
 
-
 export const Map = () => {
     const {
         data: { estimates, title, color1 = '', color2 = '', categoryColors },
@@ -77,8 +78,8 @@ export const Map = () => {
     const [maxValue, setMaxValue] = useState<number>(0);
     const [data, setData] = useState<any>(null);
     const [viewState, setViewState] = useState<MapViewState>({
-        longitude: -98.5795, 
-        latitude: 39.8283, 
+        longitude: -98.5795,
+        latitude: 39.8283,
         zoom: 2,
     });
     const [tooltip, setTooltip] = useState<Tooltip | null>(null);
@@ -101,9 +102,9 @@ export const Map = () => {
 
         // Merge state data into GeoJSON
         const mergedData = {
-            ...usStatesGeojson,
-            features: (usStatesGeojson as any).features.map((feature: any) => {
-                const stateName = feature.properties.NAME;
+            ...canadaProvincesGeojson,
+            features: (canadaProvincesGeojson as any).features.map((feature: any) => {
+                const stateName = feature.properties.prov_name_en[0];
                 const stateData = estimatesArray.find(item => item.state === stateName);
                 return {
                     ...feature,
@@ -153,13 +154,19 @@ export const Map = () => {
                         const category = d.properties.value;
                         const color = categoryColors[category];
                         if (color) {
-                            return Color(color).rgb().array().concat(200) as [number, number, number, number];
+                            return Color(color).rgb().array().concat(200) as [
+                                number,
+                                number,
+                                number,
+                                number,
+                            ];
                         }
                         return [255, 255, 255, 200] as [number, number, number, number];
                     }
 
                     const value = d.properties.value;
-                    if (value === undefined) return [255, 255, 255, 200] as [number, number, number, number];
+                    if (value === undefined)
+                        return [255, 255, 255, 200] as [number, number, number, number];
                     return [
                         ...interpolateColor(value, minValue, maxValue, color1, color2),
                         200,
