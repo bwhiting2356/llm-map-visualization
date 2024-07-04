@@ -142,7 +142,7 @@ export const Map = () => {
     );
 
     return (
-        <div className="relative h-full w-1/2 overflow-hidden">
+        <div className="relative h-full w-full overflow-hidden">
             <DeckGL
                 viewState={viewState}
                 onViewStateChange={({ viewState }: { viewState: any }) => setViewState(viewState)}

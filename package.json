@@ -23,6 +23,9 @@
         "@radix-ui/react-popover": "^1.0.7",
         "@radix-ui/react-select": "^2.0.0",
         "@radix-ui/react-slot": "^1.0.2",
+        "@react-three/fiber": "^8.16.8",
+        "@turf/turf": "^7.0.0",
+        "@types/three": "^0.166.0",
         "ai": "^3.1.23",
         "axios": "^1.7.2",
         "class-variance-authority": "^0.7.0",
@@ -34,6 +37,7 @@
         "leaflet": "^1.9.4",
         "lucide-react": "^0.383.0",
         "mapbox-gl": "^3.4.0",
+        "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
         "next": "14.2.3",
         "openai": "^4.47.3",
         "pinecone-client": "^2.0.0",
@@ -45,6 +49,7 @@
         "react-markdown": "^9.0.1",
         "tailwind-merge": "^2.3.0",
         "tailwindcss-animate": "^1.0.7",
+        "three": "^0.166.1",
         "uuid": "^9.0.1"
     },
     "devDependencies": {

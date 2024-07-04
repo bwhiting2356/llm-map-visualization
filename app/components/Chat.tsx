@@ -3,8 +3,9 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Message } from 'ai/react';
 import { Input } from '@/components/ui/input';
 import MessageComponent from './MessageComponent';
-import { ArrowCircleUp, Spinner } from '@phosphor-icons/react';
+import { ArrowCircleUp, Spinner, Microphone } from '@phosphor-icons/react';
 import { MapStateContext } from '../state/context';
+import { useVoice } from './VoiceChat';
 
 const useChat = () => {
     const [input, setInput] = useState('');
@@ -71,7 +72,9 @@ const useChat = () => {
 
 export default function Chat() {
     const { input, handleInputChange, messages, error, handleSubmit, isLoading } = useChat();
+    const { audioStream, audioStatus, audioText, sttFromMic } = useVoice();
 
+    console.log(audioText)
     const onHandleSubmit = (e: any) => {
         e.preventDefault();
         handleSubmit(e);
@@ -97,10 +100,10 @@ export default function Chat() {
 
     return (
         <div
-            className={`flex flex-col overflow-y-scroll items-center justify-between max-h-screen text-sm w-1/2 h-full border-r transition-width duration-300 relative`}
+            className={`flex flex-col items-center justify-between text-sm border-r transition-width duration-300 w-80 z-50 fixed bg-white bottom-4 right-4 rounded-lg`}
         >
             {
-                <div className="flex flex-col w-full mx-auto flex-grow px-2">
+                <div className="flex flex-col mx-auto px-2">
                     <div className="my-4">
                         <h2 className="font-bold text-xl">Chat</h2>
                     </div>
@@ -118,7 +121,7 @@ export default function Chat() {
                     <div ref={messagesEndRef} />
                 </div>
             }
-            <div className="w-full sticky bottom-0 p-2 border-t border-gray-300 bg-white">
+            <div className=" bottom-0 p-2 border-t border-gray-300 bg-white">
                 <form onSubmit={onHandleSubmit} className="flex w-full items-center space-x-2">
                     <Input
                         ref={inputRef}
@@ -130,6 +133,9 @@ export default function Chat() {
                     />
                     <button type="submit" className={`p-2 rounded text-white bg-gray-700`}>
                         {isLoading ? <Spinner size={20} /> : <ArrowCircleUp size={20} />}
+                    </button>
+                    <button type="button" className="p-2 rounded text-white bg-gray-700" onClick={sttFromMic}>
+                        <Microphone size={20} />
                     </button>
                 </form>
             </div>

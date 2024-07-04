@@ -6,7 +6,7 @@ import { Map } from './components/Map';
 
 export default function Home() {
     return (
-        <main className="flex h-screen flex items-center justify-between">
+        <main className=" h-screen">
             <MapStatsProvider>
                 <Chat />
                 <Map />
