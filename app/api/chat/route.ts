@@ -10,7 +10,7 @@ export async function POST(req: Request) {
         return rest;
     });
     const regionRAGResult = await geojsonRagHelper(filteredMessages);
-    console.log('regionRAGResult', regionRAGResult)
+    console.log('regionRAGResult', regionRAGResult);
     const result = await getClaudeResponseAndHandleToolCall(messages, regionRAGResult);
     return Response.json(result);
 }
