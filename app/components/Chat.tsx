@@ -31,10 +31,10 @@ const useChat = () => {
     }, [messages]);
     const [error, setError] = useState<Error | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const handleSubmit = (e: any) => {
+    const handleSubmit = (e?: any) => {
         setInput('');
         setIsLoading(true);
-        e.preventDefault();
+        e?.preventDefault();
 
         const newMessage: any = {
             role: 'user',
@@ -56,8 +56,12 @@ const useChat = () => {
             .finally(() => setIsLoading(false));
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInput(e.target.value);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | string) => {
+        if (typeof e === 'string') {
+            setInput(e);
+        } else {
+            setInput(e.target.value);
+        }
     };
 
     return {
@@ -74,11 +78,21 @@ export default function Chat() {
     const { input, handleInputChange, messages, error, handleSubmit, isLoading } = useChat();
     const { audioStream, audioStatus, audioText, sttFromMic } = useVoice();
 
-    console.log(audioText)
     const onHandleSubmit = (e: any) => {
         e.preventDefault();
         handleSubmit(e);
     };
+    useEffect(() => {
+        if (audioStatus === 'recognized' && audioText) {
+            handleInputChange(audioText);
+        }
+    }, [audioStatus, audioText]);
+
+    useEffect(() => {
+        if (audioStatus === 'recognized' && input === audioText) {
+            handleSubmit();
+        }
+    }, [input, audioStatus, audioText]);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -100,33 +114,30 @@ export default function Chat() {
 
     return (
         <div
-            className={`flex flex-col items-center justify-between text-sm border-r transition-width duration-300 w-80 z-50 fixed bg-white bottom-4 right-4 rounded-lg`}
+            className={`flex flex-col items-center justify-between gap-8 text-sm transition-width duration-300 w-80 z-50 fixed  bottom-4 right-4 rounded-lg`}
         >
-            {
-                <div className="flex flex-col mx-auto px-2">
-                    <div className="my-4">
-                        <h2 className="font-bold text-xl">Chat</h2>
-                    </div>
-                    {error != null && (
-                        <div className="relative px-6 py-4 text-white bg-red-500 rounded-md">
-                            <span className="block sm:inline">
-                                Error: {(error as any).toString()}
-                            </span>
-                        </div>
-                    )}
-                    {messages.map((m: Message) => (
-                        <MessageComponent key={m.id} message={m} />
-                    ))}
-                    {showSkeleton && <MessageComponent />}
-                    <div ref={messagesEndRef} />
+            <div className="flex flex-col bg-white/70 w-full h-24 hover:h-[calc(100vh-12rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto">
+                <div className="my-4">
+                    <h2 className="font-bold text-xl">Chat</h2>
                 </div>
-            }
-            <div className=" bottom-0 p-2 border-t border-gray-300 bg-white">
+                {error != null && (
+                    <div className="relative px-6 py-4 text-white bg-red-500 rounded-md">
+                        <span className="block sm:inline">Error: {(error as any).toString()}</span>
+                    </div>
+                )}
+                {messages.map((m: Message) => (
+                    <MessageComponent key={m.id} message={m} />
+                ))}
+                {showSkeleton && <MessageComponent />}
+                <div ref={messagesEndRef} />
+            </div>
+
+            <div className="w-full bottom-0 p-2 border-t border-gray-300 bg-white rounded-lg">
                 <form onSubmit={onHandleSubmit} className="flex w-full items-center space-x-2">
                     <Input
                         ref={inputRef}
                         disabled={isLoading}
-                        className="flex-grow p-2 border border-gray-300 rounded-l shadow-xl"
+                        className="flex-grow p-2 border border-gray-300 rounded-l"
                         value={input}
                         placeholder="What do you want to chat about today?"
                         onChange={handleInputChange}
@@ -134,7 +145,11 @@ export default function Chat() {
                     <button type="submit" className={`p-2 rounded text-white bg-gray-700`}>
                         {isLoading ? <Spinner size={20} /> : <ArrowCircleUp size={20} />}
                     </button>
-                    <button type="button" className="p-2 rounded text-white bg-gray-700" onClick={sttFromMic}>
+                    <button
+                        type="button"
+                        className="p-2 rounded text-white bg-gray-700"
+                        onClick={sttFromMic}
+                    >
                         <Microphone size={20} />
                     </button>
                 </form>

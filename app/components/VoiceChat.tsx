@@ -31,6 +31,7 @@ export const useVoice = () => {
         setAudioStatus('recording');
 
         recognizer.recognizeOnceAsync((result: SpeechRecognitionResult) => {
+            console.log(result.text);
             if (result.reason === ResultReason.RecognizedSpeech) {
                 setAudioText(result.text);
                 setAudioStatus('recognized');
@@ -40,6 +41,7 @@ export const useVoice = () => {
                 );
             }
         });
+        setAudioStatus('idle');
     }
 
     return {
