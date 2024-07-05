@@ -9,7 +9,7 @@ const queryClient = new QueryClient();
 
 export default function Home() {
     return (
-        <main className="flex h-screen flex items-center justify-between">
+        <main className="flex h-screen items-center justify-between">
             <QueryClientProvider client={queryClient}>
                 <MapStatsProvider>
                     <Chat />
