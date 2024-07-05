@@ -6,11 +6,11 @@ import { GeoJsonLayer } from '@deck.gl/layers';
 import { useState, useEffect, useContext, useMemo } from 'react';
 import * as turf from '@turf/turf';
 
-import canadaProvincesGeojson from './canada_regions_geojson.json';
 import { MapViewState, WebMercatorViewport } from '@deck.gl/core';
 import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
+import useGeoJson from './useGeoJson';
 
 const interpolateColor = (
     value: number,
@@ -32,8 +32,9 @@ type Tooltip = {
 
 export const Map = () => {
     const {
-        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence },
+        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence, regionKey },
     } = useContext(MapStateContext);
+    const { data: geojson, error, isLoading } = useGeoJson(regionKey);
 
     const [minValue, setMinValue] = useState<number>(0);
     const [maxValue, setMaxValue] = useState<number>(0);
@@ -47,6 +48,7 @@ export const Map = () => {
 
     useEffect(() => {
         if (!estimates) return;
+        if (!geojson || isLoading) return;
 
         // Convert estimates object to an array of key-value pairs
         const estimatesArray = Object.entries(estimates || {}).map(([key, value]) => ({
@@ -63,8 +65,8 @@ export const Map = () => {
 
         // Merge state data into GeoJSON
         const mergedData = {
-            ...canadaProvincesGeojson,
-            features: (canadaProvincesGeojson as any).features.map((feature: any) => {
+            ...geojson,
+            features: (geojson as any)?.features?.map((feature: any) => {
                 const stateName = feature.properties.NAME;
                 const stateData = estimatesArray.find(item => item.state === stateName);
                 return {
@@ -86,7 +88,13 @@ export const Map = () => {
             const viewport = new WebMercatorViewport({
                 width: window.innerWidth,
                 height: window.innerHeight,
-            }).fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { padding: 20 });
+            }).fitBounds(
+                [
+                    [bbox[0], bbox[1]],
+                    [bbox[2], bbox[3]],
+                ],
+                { padding: 20 },
+            );
 
             setViewState({
                 longitude: viewport.longitude,
@@ -94,7 +102,7 @@ export const Map = () => {
                 zoom: viewport.zoom,
             });
         }
-    }, [estimates]);
+    }, [estimates, geojson]);
 
     const geoJsonLayer = useMemo(
         () =>
@@ -155,14 +163,12 @@ export const Map = () => {
                     projection={{ name: 'mercator' }}
                 />
             </DeckGL>
-            {
-                confidence && (
-                    <div className="absolute top-4 right-4 bg-white border-gray-100 rounded px-2 py-1 text-gray-700 text-sm text-right">
-                        <div className="text-gray-700">Confidence</div>
-                        <div className="text-gray-500">{confidence}</div>
-                    </div>
-                )
-            }
+            {confidence && (
+                <div className="absolute top-4 right-4 bg-white border-gray-100 rounded px-2 py-1 text-gray-700 text-sm text-right">
+                    <div className="text-gray-700">Confidence</div>
+                    <div className="text-gray-500">{confidence}</div>
+                </div>
+            )}
             {title && (
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white border-gray-100 rounded px-2 py-1 text-gray-700">
                     {title}
