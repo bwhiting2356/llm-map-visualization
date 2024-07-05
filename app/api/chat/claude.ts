@@ -65,8 +65,8 @@ This will then be passed into a similarity search to match what existing in the 
 The database records look somethign like this: 
 
 {
-    region: "United States",
-    subregions: ["Alabama", "Alaska", ...],
+    region: "Chicago",
+    subregions: ["Cook County", "DuPage County", "Lake County", "Will County"]
 }
 
 Please return a similar object with the region and subregions that you think the user is asking about. 
@@ -76,7 +76,7 @@ It is not necessary for the subregion list to be exhaustive, just enough for a s
 
 export const geojsonRagHelper = async (messages: any) => {
     const result = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-3-5-sonnet-20240620',
         max_tokens: 3000,
         temperature: 0,
         system: ragHelperSystemMessage,
@@ -88,8 +88,10 @@ export const geojsonRagHelper = async (messages: any) => {
         ],
     });
     const textToEmbed = (result.content[0] as any).text;
+    console.log('text to embed:', textToEmbed);
     const embedding = await getEmbedding(textToEmbed);
     const topResult = await performSimilaritySearch(embedding);
+    console.log('top result:', topResult);
     return topResult?.metadata;
 };
 
