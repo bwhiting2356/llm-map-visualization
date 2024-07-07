@@ -90,7 +90,11 @@ export default function Chat() {
                                 className={`p-2 rounded text-white bg-gray-700`}
                                 disabled={isLoading}
                             >
-                                {isLoading ? <Spinner size={20} /> : <ArrowCircleUp size={20} />}
+                                {isLoading ? (
+                                    <Spinner className="animate-spin" size={20} />
+                                ) : (
+                                    <ArrowCircleUp size={20} />
+                                )}
                             </button>
                             <button
                                 type="button"
