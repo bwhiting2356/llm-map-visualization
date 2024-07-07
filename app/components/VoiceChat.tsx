@@ -33,7 +33,6 @@ export const useVoice = () => {
         }
 
         recognizer.recognizeOnceAsync((result: SpeechRecognitionResult) => {
-            console.log(result.text);
             if (result.reason === ResultReason.RecognizedSpeech) {
                 setAudioText(result.text);
                 setAudioStatus('recognized');

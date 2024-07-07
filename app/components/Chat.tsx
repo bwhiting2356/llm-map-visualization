@@ -110,7 +110,7 @@ export default function Chat() {
         <div
             className={`flex flex-col items-center justify-between gap-8 text-sm transition-width duration-300 w-96 z-50 fixed  bottom-4 right-4 rounded-lg`}
         >
-            <div className="flex flex-col bg-white/70 w-full h-60 hover:h-[calc(100vh-12rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto">
+            <div className="flex flex-col bg-white/70 w-full h-60 hover:h-[calc(100vh-24rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto">
                 <div className="my-4">
                     <h2 className="font-bold text-xl">Chat</h2>
                 </div>
