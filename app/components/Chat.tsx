@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import MessageComponent from './MessageComponent';
 import { ArrowCircleUp, Spinner, Microphone } from '@phosphor-icons/react';
 import { MapStateContext } from '../state/context';
-import { useVoice } from './VoiceChat';
+import VoiceVisualizer, { useVoice } from './VoiceChat';
 
 const useChat = () => {
     const [input, setInput] = useState('');
@@ -31,14 +31,14 @@ const useChat = () => {
     }, [messages]);
     const [error, setError] = useState<Error | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const handleSubmit = (e?: any) => {
+    const handleSubmit = (e?: any, query?: string) => {
         setInput('');
         setIsLoading(true);
         e?.preventDefault();
 
         const newMessage: any = {
             role: 'user',
-            content: [{ type: 'text', text: input }],
+            content: [{ type: 'text', text: query || input }],
         };
 
         const newMessages = [...messages, newMessage];
@@ -84,15 +84,9 @@ export default function Chat() {
     };
     useEffect(() => {
         if (audioStatus === 'recognized' && audioText) {
-            handleInputChange(audioText);
+            handleSubmit(undefined, audioText);
         }
     }, [audioStatus, audioText]);
-
-    useEffect(() => {
-        if (audioStatus === 'recognized' && input === audioText) {
-            handleSubmit();
-        }
-    }, [input, audioStatus, audioText]);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -114,9 +108,9 @@ export default function Chat() {
 
     return (
         <div
-            className={`flex flex-col items-center justify-between gap-8 text-sm transition-width duration-300 w-80 z-50 fixed  bottom-4 right-4 rounded-lg`}
+            className={`flex flex-col items-center justify-between gap-8 text-sm transition-width duration-300 w-96 z-50 fixed  bottom-4 right-4 rounded-lg`}
         >
-            <div className="flex flex-col bg-white/70 w-full h-24 hover:h-[calc(100vh-12rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto">
+            <div className="flex flex-col bg-white/70 w-full h-60 hover:h-[calc(100vh-12rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto">
                 <div className="my-4">
                     <h2 className="font-bold text-xl">Chat</h2>
                 </div>
@@ -132,28 +126,77 @@ export default function Chat() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="w-full bottom-0 p-2 border-t border-gray-300 bg-white rounded-lg">
-                <form onSubmit={onHandleSubmit} className="flex w-full items-center space-x-2">
-                    <Input
-                        ref={inputRef}
-                        disabled={isLoading}
-                        className="flex-grow p-2 border border-gray-300 rounded-l"
-                        value={input}
-                        placeholder="What do you want to chat about today?"
-                        onChange={handleInputChange}
-                    />
-                    <button type="submit" className={`p-2 rounded text-white bg-gray-700`}>
-                        {isLoading ? <Spinner size={20} /> : <ArrowCircleUp size={20} />}
-                    </button>
-                    <button
-                        type="button"
-                        className="p-2 rounded text-white bg-gray-700"
-                        onClick={sttFromMic}
-                    >
-                        <Microphone size={20} />
-                    </button>
-                </form>
+            <div className="w-full bottom-0 p-4 border-t border-gray-300 bg-white rounded-lg">
+                {audioStatus !== 'recording' ? (
+                    <>
+                        <QuerySuggestions handleSubmit={handleSubmit} />
+                        <form
+                            onSubmit={onHandleSubmit}
+                            className="flex w-full items-center space-x-2"
+                        >
+                            <Input
+                                ref={inputRef}
+                                disabled={isLoading}
+                                className="flex-grow p-2 border border-gray-300 rounded-l"
+                                value={input}
+                                placeholder="What stats are you interested in?"
+                                onChange={handleInputChange}
+                            />
+                            <button type="submit" className={`p-2 rounded text-white bg-gray-700`}>
+                                {isLoading ? <Spinner size={20} /> : <ArrowCircleUp size={20} />}
+                            </button>
+                            <button
+                                type="button"
+                                className="p-2 rounded text-white bg-gray-700"
+                                onClick={sttFromMic}
+                            >
+                                <Microphone size={20} />
+                            </button>
+                        </form>
+                    </>
+                ) : (
+                    <>{audioStream && <VoiceVisualizer audioStream={audioStream} />}</>
+                )}
             </div>
         </div>
     );
 }
+
+const QuerySuggestions = ({
+    handleSubmit,
+}: {
+    handleSubmit: (e?: any, query?: string) => void;
+}) => {
+    const queries = [
+        'What is the population distribution of Canada?',
+        'What is the weather distribution in US?',
+    ];
+    return (
+        <div className="flex flex-col gap-2 mb-4">
+            <h3 className="font-bold">Popular searches</h3>
+            <div className="flex flex-col gap-2">
+                {queries.map((query, index) => (
+                    <QuerySuggestion key={index} onClick={handleSubmit} query={query} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const QuerySuggestion = ({
+    query,
+    onClick,
+}: {
+    query: string;
+    onClick: (e?: React.ChangeEvent<HTMLInputElement>, query?: string) => void;
+}) => {
+    return (
+        <button
+            type="button"
+            onClick={() => onClick(undefined, query)}
+            className="bg-gray-100 hover:bg-gray-300 px-4 py-4 rounded-lg w-full text-left"
+        >
+            <p>{query}</p>
+        </button>
+    );
+};
