@@ -23,6 +23,6 @@ def convert_geojson(input_file, output_file):
     print(f"Converted GeoJSON saved to {output_file}")
 
 # Example usage
-input_file = 'germany-original.json'  # Update this to your input file path
-output_file = 'germany.json'
+input_file = 'netherlands-original.json'  # Update this to your input file path
+output_file = 'netherlands.json'
 convert_geojson(input_file, output_file)
