@@ -3,7 +3,7 @@
 import DeckGL from '@deck.gl/react';
 import { Map as MapGL } from 'react-map-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
-import { useState, useEffect, useContext, useMemo } from 'react';
+import { useState, useEffect, useContext, useMemo, use, useTransition } from 'react';
 import * as turf from '@turf/turf';
 
 import { MapViewState, WebMercatorViewport } from '@deck.gl/core';
@@ -11,7 +11,8 @@ import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
 import useGeoJson from './useGeoJson';
-import { DownloadSimple, FloppyDisk } from '@phosphor-icons/react';
+import { Check, DownloadSimple, FloppyDisk, Spinner } from '@phosphor-icons/react';
+import { neon } from '@neondatabase/serverless';
 
 const interpolateColor = (
     value: number,
@@ -33,10 +34,19 @@ type Tooltip = {
 
 export const Map = () => {
     const {
-        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence, regionKey, summary },
+        data: {
+            estimates,
+            title,
+            color1 = '',
+            color2 = '',
+            categoryColors,
+            confidence,
+            regionKey,
+            summary,
+        },
     } = useContext(MapStateContext);
     const { data: geojson, error, isLoading } = useGeoJson(regionKey);
-
+    const chatWidth = 384;
     const [minValue, setMinValue] = useState<number>(0);
     const [maxValue, setMaxValue] = useState<number>(0);
     const [data, setData] = useState<any>(null);
@@ -44,6 +54,7 @@ export const Map = () => {
         longitude: -98.5795,
         latitude: 39.8283,
         zoom: 2,
+        position: [-chatWidth / 2, 0, 0],
     });
     const [tooltip, setTooltip] = useState<Tooltip | null>(null);
 
@@ -156,6 +167,33 @@ export const Map = () => {
         Low: 'bg-red-200 text-red-800 ring-red-600',
     };
 
+    const [isPending, startTransition] = useTransition();
+    const [isSaved, setIsSaved] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
+
+    const handleSaveMap = () => {
+        startTransition(() => {
+            saveMap();
+            setIsSaved(true);
+            setHasChanges(false);
+        });
+    };
+
+    useEffect(() => {
+        if (isSaved) {
+            setHasChanges(true);
+        }
+    }, [data]);
+
+    async function saveMap() {
+        if (!title || !data) return;
+        ('use server');
+        const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL!);
+        //create the table if it does not exist
+        await sql`CREATE TABLE IF NOT EXISTS maps (id SERIAL PRIMARY KEY, title TEXT, data JSONB , uuid UUID DEFAULT gen_random_uuid())`;
+        const result = await sql`INSERT INTO maps (title, data) VALUES (${title}, ${data})`;
+    }
+
     return (
         <div className="relative h-full w-full overflow-hidden">
             <DeckGL
@@ -172,18 +210,33 @@ export const Map = () => {
             </DeckGL>
             {title && confidence && (
                 <div className="bg-black w-96 fixed top-4 right-4 rounded-lg p-4 flex flex-col gap-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                         <div className="text-white text-sm font-bold">{title}</div>
                         <div
-                            className={`p-2 text-xs uppercase ring-2 rounded-sm font-bold min-w-fit h-fit ${confidenceBadge[confidence as keyof typeof confidenceBadge]}`}
+                            className={`p-2 text-xs uppercase ring-2 rounded-sm font-extrabold min-w-fit h-fit ${confidenceBadge[confidence as keyof typeof confidenceBadge]}`}
                         >
                             <p className="">Confidence: {confidence}</p>
                         </div>
                     </div>
                     {summary && <div className="text-gray-300 text-sm">{summary}</div>}
-                    <button className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2">
-                        Save map <DownloadSimple size={24} />
-                    </button>
+                    {isSaved && !hasChanges ? (
+                        <div className="text-sm bg-gray-700 p-2 rounded-sm flex items-center gap-2 justify-center text-white">
+                            Map saved successfully <Check size={16} className="text-green-500" />
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleSaveMap}
+                            disabled={isPending}
+                            className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100"
+                        >
+                            {isPending ? 'Saving...' : 'Save map'}{' '}
+                            {isPending ? (
+                                <Spinner size={24} className="animate-spin" />
+                            ) : (
+                                <DownloadSimple size={24} />
+                            )}
+                        </button>
+                    )}
                 </div>
             )}
             <MapLegend />
