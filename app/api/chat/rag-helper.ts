@@ -118,8 +118,9 @@ export const geojsonRagHelper = async (messages: any) => {
             },
         ],
     });
+    console.log('selectedIndexResult', selectedIndexResult)
     const index = parseInt((selectedIndexResult.content[0] as any).text);
-    if (index !== null) {
+    if (index !== null && !isNaN(index)) {
         return topResults.matches[index].metadata
     } else {
         return {
