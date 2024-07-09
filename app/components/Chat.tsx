@@ -125,7 +125,7 @@ export default function Chat() {
                         disabled={isLoading}
                         className="flex-grow p-2 border border-gray-300 rounded-l shadow-xl"
                         value={input}
-                        placeholder="What do you want to chat about today?"
+                        placeholder="Ask a statistical question about a region"
                         onChange={handleInputChange}
                     />
                     <button type="submit" className={`p-2 rounded text-white bg-gray-700`}>
