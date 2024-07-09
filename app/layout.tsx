@@ -5,8 +5,8 @@ import './globals.css';
 const nunitoSans = Nunito_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'Memory Bot',
-    description: 'Proof of concept for giving a bot memory using RAG',
+    title: 'Map Chat',
+    description: 'Proof of concept for wiring LLMs up to map visualizations',
 };
 
 export default function RootLayout({
