@@ -9,6 +9,7 @@ interface ChatState {
     error: Error | null;
     isLoading: boolean;
     handleSubmit: (e?: any, query?: string) => void;
+    resetThread: () => void;
 }
 
 interface AudioState {
@@ -25,6 +26,7 @@ export const ChatContext = createContext<ChatState & AudioState>({
     error: null,
     isLoading: false,
     handleSubmit: () => {},
+    resetThread: () => {},
     audioStatus: 'idle',
     audioStream: null,
     audioText: null,
@@ -36,7 +38,7 @@ interface ChatProviderProps {
 }
 
 export const ChatProvider = ({ children }: ChatProviderProps) => {
-    const { input, handleInputChange, messages, error, handleSubmit, isLoading } = useChat();
+    const { input, handleInputChange, messages, error, handleSubmit, isLoading, resetThread } = useChat();
     const { audioStream, audioStatus, audioText, sttFromMic } = useVoice();
 
     const value = {
@@ -48,8 +50,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         handleSubmit,
         audioStatus,
         audioStream,
-        audioText,
+        audioText,  
         sttFromMic,
+        resetThread,
     };
 
     return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

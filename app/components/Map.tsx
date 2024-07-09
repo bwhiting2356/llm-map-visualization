@@ -11,6 +11,7 @@ import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
 import useGeoJson from './useGeoJson';
+import { DownloadSimple, FloppyDisk } from '@phosphor-icons/react';
 
 const interpolateColor = (
     value: number,
@@ -32,7 +33,7 @@ type Tooltip = {
 
 export const Map = () => {
     const {
-        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence, regionKey },
+        data: { estimates, title, color1 = '', color2 = '', categoryColors, confidence, regionKey, summary },
     } = useContext(MapStateContext);
     const { data: geojson, error, isLoading } = useGeoJson(regionKey);
 
@@ -149,6 +150,12 @@ export const Map = () => {
         [data],
     );
 
+    const confidenceBadge = {
+        Medium: 'bg-yellow-200 text-yellow-800 ring-yellow-600',
+        High: 'bg-green-200 text-green-800 ring-green-600',
+        Low: 'bg-red-200 text-red-800 ring-red-600',
+    };
+
     return (
         <div className="relative h-full w-full overflow-hidden">
             <DeckGL
@@ -163,15 +170,20 @@ export const Map = () => {
                     projection={{ name: 'mercator' }}
                 />
             </DeckGL>
-            {confidence && (
-                <div className="absolute top-4 right-4 bg-white border-gray-100 rounded px-2 py-1 text-gray-700 text-sm text-right">
-                    <div className="text-gray-700">Confidence</div>
-                    <div className="text-gray-500">{confidence}</div>
-                </div>
-            )}
-            {title && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white border-gray-100 rounded px-2 py-1 text-gray-700">
-                    {title}
+            {title && confidence && (
+                <div className="bg-black w-96 fixed top-4 right-4 rounded-lg p-4 flex flex-col gap-2">
+                    <div className="flex gap-2">
+                        <div className="text-white text-sm font-bold">{title}</div>
+                        <div
+                            className={`p-2 text-xs uppercase ring-2 rounded-sm font-bold min-w-fit h-fit ${confidenceBadge[confidence as keyof typeof confidenceBadge]}`}
+                        >
+                            <p className="">Confidence: {confidence}</p>
+                        </div>
+                    </div>
+                    {summary && <div className="text-gray-300 text-sm">{summary}</div>}
+                    <button className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2">
+                        Save map <DownloadSimple size={24} />
+                    </button>
                 </div>
             )}
             <MapLegend />

@@ -68,13 +68,16 @@ const config = {
                     to: { height: '0' },
                 },
             },
+            fontFamily: {
+                sans: ['var(--font-nunito-sans)'],
+            },
             animation: {
                 'accordion-down': 'accordion-down 0.2s ease-out',
                 'accordion-up': 'accordion-up 0.2s ease-out',
             },
         },
     },
-    plugins: [require('tailwindcss-animate')],
+    plugins: [require('tailwindcss-animate'), require('tailwind-scrollbar')],
 } satisfies Config;
 
 export default config;

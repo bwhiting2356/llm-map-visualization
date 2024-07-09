@@ -166,6 +166,10 @@ export const getClaudeResponse = async (messages: any, regionRAGResult: any) => 
                             type: 'string',
                             description: 'Title for the map',
                         },
+                        summary: {
+                            type: 'string',
+                            description: 'A two sentence summary of the estimates',
+                        },
                         color1: {
                             type: 'string',
                             description: 'First color for the color scale (e.g., #FF0000 for red)',

@@ -19,6 +19,7 @@ export default function Chat() {
         audioStream,
         sttFromMic,
         audioText,
+        resetThread,
     } = useContext(ChatContext);
 
     const onHandleSubmit = (e: any) => {
@@ -34,11 +35,6 @@ export default function Chat() {
     const inputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const showSkeleton = useMemo(() => {
-        const lastMessage = messages[messages.length - 1];
-        return lastMessage?.role !== 'assistant' && isLoading;
-    }, [isLoading, messages]);
-
     useEffect(() => {
         if (!isLoading) {
             inputRef.current?.focus();
@@ -49,30 +45,23 @@ export default function Chat() {
         messagesEndRef.current?.scrollIntoView();
     }, [messages]);
 
+    const activeThread = messages.length > 0;
+
     return (
         <div
-            className={`flex flex-col items-center justify-between gap-8 text-sm transition-width duration-300 w-96 z-50 fixed  bottom-4 right-4 rounded-lg`}
+            className={`flex flex-col items-center justify-between gap-8 text-sm transition-all duration-300 w-96 z-50 fixed  bottom-4 right-4 rounded-lg `}
         >
-            <div className="flex flex-col bg-white/70 w-full h-60 hover:h-[calc(100vh-24rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto">
-                <div className="my-4">
-                    <h2 className="font-bold text-xl">Chat</h2>
-                </div>
-                {error != null && (
-                    <div className="relative px-6 py-4 text-white bg-red-500 rounded-md">
-                        <span className="block sm:inline">Error: {(error as any).toString()}</span>
-                    </div>
-                )}
-                {messages.map((m: Message) => (
-                    <MessageComponent key={m.id} message={m} />
-                ))}
-                {showSkeleton && <MessageComponent />}
-                <div ref={messagesEndRef} />
-            </div>
-
-            <div className="w-full bottom-0 p-4 border-t border-gray-300 bg-white rounded-lg">
+            <div className="w-full bottom-0 p-4 bg-white rounded-lg">
                 {audioStatus !== 'recording' ? (
                     <>
-                        <QuerySuggestions handleSubmit={handleSubmit} />
+                        {activeThread ? (
+                            <>
+                                <ChatHistory />
+                                <ActionButtons />
+                            </>
+                        ) : (
+                            <QuerySuggestions handleSubmit={handleSubmit} />
+                        )}
                         <form
                             onSubmit={onHandleSubmit}
                             className="flex w-full items-center space-x-2"
@@ -80,14 +69,14 @@ export default function Chat() {
                             <Input
                                 ref={inputRef}
                                 disabled={isLoading}
-                                className="flex-grow p-2 border border-gray-300 rounded-l"
+                                className="flex-grow p-2 border border-gray-300 rounded-l focus-visible:ring-offset-0"
                                 value={input}
-                                placeholder="What stats are you interested in?"
+                                placeholder={`${activeThread ? 'Get more insights or add a new query' : 'What would you like to visualize?'}`}
                                 onChange={handleInputChange}
                             />
                             <button
                                 type="submit"
-                                className={`p-2 rounded text-white bg-gray-700`}
+                                className={`p-2 rounded text-white bg-gray-900`}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
@@ -98,7 +87,7 @@ export default function Chat() {
                             </button>
                             <button
                                 type="button"
-                                className="p-2 rounded text-white bg-gray-700"
+                                className=" rounded text-black "
                                 onClick={sttFromMic}
                                 disabled={isLoading}
                             >
@@ -107,12 +96,71 @@ export default function Chat() {
                         </form>
                     </>
                 ) : (
-                    <>{audioStream && <VoiceVisualizer audioStream={audioStream} />}</>
+                    <>
+                        {audioStream && (
+                            <>
+                                <VoiceVisualizer audioStream={audioStream} />
+                                <div>Recording</div>
+                            </>
+                        )}
+                    </>
                 )}
             </div>
         </div>
     );
 }
+
+const ChatHistory = () => {
+    const { messages, error, isLoading } = useContext(ChatContext);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const showSkeleton = useMemo(() => {
+        const lastMessage = messages[messages.length - 1];
+        return lastMessage?.role !== 'assistant' && isLoading;
+    }, [isLoading, messages]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }, [messages]);
+    return (
+        <div
+            ref={containerRef}
+            className="flex flex-col bg-white/70 w-full h-[calc(100vh-28rem)] transition-all duration-300 px-2 rounded-lg hover:bg-white overflow-y-auto mb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+        >
+            <div className="my-4">
+                <h2 className="font-bold text-xl">Chat</h2>
+            </div>
+            {error != null && (
+                <div className="relative px-6 py-4 text-white bg-red-500 rounded-md">
+                    <span className="block sm:inline">Error: {(error as any).toString()}</span>
+                </div>
+            )}
+            {messages.map((m: Message) => (
+                <MessageComponent key={m.id} message={m} />
+            ))}
+            {showSkeleton && <MessageComponent />}
+            <div ref={messagesEndRef} />
+        </div>
+    );
+};
+
+const ActionButtons = () => {
+    const { resetThread, isLoading } = useContext(ChatContext);
+    return (
+        <div className="flex justify-between mb-2">
+            {/* <button
+                disabled={isLoading}
+                className="bg-gray-100 hover:bg-gray-300 px-4 py-1 rounded-sm"
+            >
+                Popular queries
+            </button> */}
+            <button disabled={isLoading} className="underline text-gray-500" onClick={resetThread}>
+                Reset thread
+            </button>
+        </div>
+    );
+};
 
 const QuerySuggestions = ({
     handleSubmit,

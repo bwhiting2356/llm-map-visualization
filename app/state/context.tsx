@@ -9,6 +9,7 @@ interface MapStateType {
         estimates: Estimates;
 
         title: string;
+        summary: string;
         legendSide1?: string;
         legendSide2?: string;
         color1?: string;
@@ -23,6 +24,7 @@ interface MapStateType {
 const initialData = {
     estimates: {},
     color1: '',
+    summary: '',
     color2: '',
     title: '',
     legendSide1: '',
