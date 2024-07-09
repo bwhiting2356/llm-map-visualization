@@ -1,6 +1,7 @@
 export const maxDuration = 35;
 
-import { geojsonRagHelper, getClaudeResponseAndHandleToolCall } from './claude';
+import { getClaudeResponseAndHandleToolCall } from './chat';
+import { geojsonRagHelper } from './rag-helper';
 
 export async function POST(req: Request) {
     const { messages } = await req.json();
