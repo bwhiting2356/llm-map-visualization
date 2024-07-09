@@ -7,7 +7,17 @@ import { Map } from './components/Map';
 
 const queryClient = new QueryClient();
 
+import Hotjar from '@hotjar/browser';
+import { useEffect } from 'react';
+
+const siteId = process.env.NEXT_PUBLIC_HOTJAR_SITE_ID;
+const hotjarVersion = 6;
+    
+
 export default function Home() {
+    useEffect(() => {
+        Hotjar.init(siteId as any, hotjarVersion);
+    }, []);
     return (
         <main className="flex h-screen flex items-center justify-between">
             <QueryClientProvider client={queryClient}>
