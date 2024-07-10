@@ -33,7 +33,7 @@ export const formatValue = (value: number | string) => {
     return value.toLocaleString();
 }
 
-export const rehydrateMessages = (data: any) => {
+export const rehydrateMapStateMessages = (data: any) => {
     const firstUserMessage = {
         id: "msg_0174sQdSLmfnpDs3ZyhLq1R1",
         "role":"user",

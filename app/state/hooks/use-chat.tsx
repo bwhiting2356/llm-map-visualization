@@ -3,9 +3,11 @@ import { MapStateContext } from '../context';
 import { Message } from 'ai/react';
 import { useParams } from 'next/navigation';
 import { useSavedMap } from '@/lib/useSavedMapById';
-import { rehydrateMessages } from '@/lib/utils';
+import { rehydrateMapStateMessages } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export const useChat = () => {
+    const router = useRouter()
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const { setData } = useContext(MapStateContext);
@@ -17,7 +19,7 @@ export const useChat = () => {
 
     useEffect(() => {
         if (data) {
-            const newMessages = rehydrateMessages(data);
+            const newMessages = rehydrateMapStateMessages(data);
             setMessages(newMessages);
             setIsLoading(true);
             fetch('/api/chat', {

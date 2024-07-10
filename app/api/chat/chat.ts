@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { searchWeb } from './serp-api';
 import { listAvailableGeojsons } from './list-regions';
 
 const anthropic = new Anthropic();
