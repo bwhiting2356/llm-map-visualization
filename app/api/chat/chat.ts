@@ -103,6 +103,10 @@ const buildTools = (regionRAGResult: any) => {
                         type: 'string',
                         description: 'Title for the map',
                     },
+                    summary: {
+                        type: 'string',
+                        description: 'A two sentence summary of the estimates',
+                    },
                     color1: {
                         type: 'string',
                         description: 'First color for the color scale (e.g., #FF0000 for red)',
@@ -149,6 +153,10 @@ const buildTools = (regionRAGResult: any) => {
             input_schema: {
                 type: 'object',
                 properties: {
+                    summary: {
+                        type: 'string',
+                        description: 'A two sentence summary of the estimates',
+                    },
                     estimates: {
                         type: 'object',
                         description: 'An object with sub-region names as keys and estimated values',
@@ -200,7 +208,7 @@ export const getClaudeResponseAndHandleToolCall = async (
     });
     const result = await getClaudeResponse(filteredMessages, regionRAGResult);
     if (result.stop_reason === 'tool_use') {
-        const toolCall = result.content.find(item => item.type === 'tool_use') as any;
+        const toolCall = result.content.find((item: any) => item.type === 'tool_use') as any;
         const { name, id } = toolCall;
         let nextMessage;
         if (name === 'continuous_stats_estimates' || name === 'category_stats_estimates') {
@@ -216,7 +224,6 @@ export const getClaudeResponseAndHandleToolCall = async (
             };
         } else if (name === 'list_available_regions') {
             const regions = await listAvailableGeojsons();
-            console.log('regions', regions)
             nextMessage = {
                 role: 'user',
                 content: [
