@@ -16,6 +16,7 @@ export const useChat = () => {
     useEffect(() => {
         if (data) {
             const messagesNew = rehydrateMessages(data)
+            setMessages(messagesNew)
         }
     }, [data])
 
@@ -28,7 +29,6 @@ export const useChat = () => {
                     message?.role === 'assistant' &&
                     message?.content?.some((contentItem: any) => contentItem.type === 'tool_use'),
             );
-
         if (lastToolUseMessage) {
             const toolResult = lastToolUseMessage.content.find(
                 (contentItem: any) => contentItem.type === 'tool_use',

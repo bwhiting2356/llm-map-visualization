@@ -33,6 +33,23 @@ export const formatValue = (value: number | string) => {
     return value.toLocaleString();
 }
 
-export const rehydrateMessages = (data: any) {
+export const rehydrateMessages = (data: any) => {
+    const toolUseMessage = {
+        "role":"assistant",
+        content: [
+            {
+                "type":"tool_use",
+                "id":"toolu_0174sQdSLmfnpDs3ZyhLq1Rm",
+                "name":"continuous_stats_estimates",
+                "input": data.data
+            }
+        ]
+    }
+    const renderedMessage = {
+        "type":"tool_result",
+        "tool_use_id":"toolu_0174sQdSLmfnpDs3ZyhLq1Rm",
+        "content":"rendered"
+    }
+    return [toolUseMessage, renderedMessage]
 
 }
