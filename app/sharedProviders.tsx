@@ -1,7 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
-import { Nunito_Sans } from 'next/font/google';
 import './globals.css';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { useEffect } from 'react';
