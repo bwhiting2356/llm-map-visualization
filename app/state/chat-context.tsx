@@ -38,7 +38,8 @@ interface ChatProviderProps {
 }
 
 export const ChatProvider = ({ children }: ChatProviderProps) => {
-    const { input, handleInputChange, messages, error, handleSubmit, isLoading, resetThread } = useChat();
+    const { input, handleInputChange, messages, error, handleSubmit, isLoading, resetThread } =
+        useChat();
     const { audioStream, audioStatus, audioText, sttFromMic } = useVoice();
 
     const value = {
@@ -50,7 +51,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         handleSubmit,
         audioStatus,
         audioStream,
-        audioText,  
+        audioText,
         sttFromMic,
         resetThread,
     };

@@ -24,7 +24,7 @@ def convert_geojson(input_file, output_file):
     print(f"Converted GeoJSON saved to {output_file}")
 
 # Get the directory containing the neighborhood GeoJSON files
-input_directory = 'neighborhoods-master'
+input_directory = 'to-convert'
 output_directory = '.'
 
 # Loop through every file in the input directory

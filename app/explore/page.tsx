@@ -1,4 +1,4 @@
-import {neon} from '@neondatabase/serverless'
+import { neon } from '@neondatabase/serverless';
 
 async function getData() {
     const sql = neon(process.env.DATABASE_URL!);
@@ -7,6 +7,6 @@ async function getData() {
 }
 
 export default async function ExplorePage() {
-  const data = await getData();
-  return <div>{JSON.stringify(data)}</div>;
+    const data = await getData();
+    return <div>{JSON.stringify(data)}</div>;
 }

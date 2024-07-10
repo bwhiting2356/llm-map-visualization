@@ -1,7 +1,6 @@
-import { ResultReason } from "microsoft-cognitiveservices-speech-sdk";
-import { useState } from "react";
+import { ResultReason } from 'microsoft-cognitiveservices-speech-sdk';
+import { useState } from 'react';
 import { type SpeechRecognitionResult } from 'microsoft-cognitiveservices-speech-sdk';
-
 
 const speechsdk = require('microsoft-cognitiveservices-speech-sdk');
 

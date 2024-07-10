@@ -1,11 +1,23 @@
 import { useState, useContext, useEffect } from 'react';
 import { MapStateContext } from '../context';
 import { Message } from 'ai/react';
+import { useParams } from 'next/navigation';
+import { useSavedMap } from '@/lib/useSavedMapById';
+import { rehydrateMessages } from '@/lib/utils';
 
 export const useChat = () => {
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const { setData } = useContext(MapStateContext);
+
+    const { id } = useParams()
+    const { data } = useSavedMap(id as string)
+
+    useEffect(() => {
+        if (data) {
+            const messagesNew = rehydrateMessages(data)
+        }
+    }, [data])
 
     useEffect(() => {
         const lastToolUseMessage = messages

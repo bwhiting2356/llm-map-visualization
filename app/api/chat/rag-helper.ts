@@ -71,7 +71,7 @@ const getEmbedding = async (text: string) => {
     }
 };
 
-const optionChooserSystemMessage = `
+const optionChooserMessageTemplate = `
 I need your help figuring out which option from a similarity search is a match for a user query, if any.
 The user is looking for a specific region and subregions.
 Given the following query, and the list of options below, please respond with the index (using 0-based indices) 
@@ -79,15 +79,15 @@ of the item in the list that the match for the user's query. If you believe none
 A nearby, or more granular/less granular region is not a good match, only the exact region is a good match.
 
 Examples of good matches:
-* the user asks for {"region": "Chicago", "subRegions: ["Albany Park"...]} and the option is {"region": "Chicago", "subRegions: [Altgeld Gardens"...]}
-* the user asks for {"region": "Canada", "subRegions: ["Ontario"...]} and the option is {"region": "Canada", "subRegions: ["British Columbia"...
+'chicago' -> 'Chicago'
+'bc regions' -> 'British Columbia districts'
 
 Examples of bad matches:
-* the user asks for {"region": "Chicago", "subRegions: ["Albany Park"...]} and the option is {"region": "Illinois", "subRegions: ["Chicago"...]
-* the user asks for {"region": "Canada", "subRegions: ["Ontario"...]} and the option is {"region": "United States", "subRegions: ["New York"...
+'chicago' -> 'Cook County'
+'California' -> 'Los Angeles'
 
 <query>
-{{ QUERY }
+{{ QUERY }}
  </query>
  <options>
 {{ OPTIONS }}
@@ -117,17 +117,17 @@ export const geojsonRagHelper = async (messages: any) => {
     const textToEmbed = (result.content[0] as any).text;
     const embedding = await getEmbedding(textToEmbed);
     const topResults = await similaritySearch(embedding);
+    const optionChooseMessage = optionChooserMessageTemplate
+        .replace('{{ QUERY }}', JSON.parse(textToEmbed).region)
+        .replace('{{ OPTIONS }}', JSON.stringify(topResults.matches.map(m => m?.metadata?.region)));
     const selectedIndexResult = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20240620',
         max_tokens: 3000,
         temperature: 0,
-        system: optionChooserSystemMessage
-            .replace('{{ QUERY }}', textToEmbed)
-            .replace('{{ OPTIONS }}', JSON.stringify(topResults.matches.map(m => m.metadata))),
         messages: [
             {
                 role: 'user',
-                content: JSON.stringify(messages),
+                content: optionChooseMessage,
             },
         ],
     });

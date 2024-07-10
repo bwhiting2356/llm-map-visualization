@@ -203,7 +203,7 @@ export const getClaudeResponseAndHandleToolCall = async (
     regionRAGResult: any,
 ): Promise<any> => {
     const filteredMessages = messages.map((m: any) => {
-        const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m;
+        const { id, type, model, stop_reason, stop_sequence, usage, ...rest } = m || {};
         return rest;
     });
     const result = await getClaudeResponse(filteredMessages, regionRAGResult);
@@ -230,7 +230,7 @@ export const getClaudeResponseAndHandleToolCall = async (
                     {
                         type: 'tool_result',
                         tool_use_id: id,
-                        content: JSON.stringify(regions)
+                        content: JSON.stringify(regions),
                     },
                 ],
             };

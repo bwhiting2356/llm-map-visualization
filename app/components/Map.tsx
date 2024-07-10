@@ -1,55 +1,43 @@
 'use client';
 
 import DeckGL from '@deck.gl/react';
-import { Map as MapGL, MapRef } from 'react-map-gl';
+import { Map as MapGL } from 'react-map-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
-import { useState, useEffect, useContext, useMemo, use, useTransition, useRef } from 'react';
-import * as turf from '@turf/turf';
-
+import { useState, useEffect, useContext, useMemo, useTransition } from 'react';
 import { FlyToInterpolator, MapViewState, WebMercatorViewport } from '@deck.gl/core';
 import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
-import useGeoJson from './useGeoJson';
+import useGeoJson from '../../lib/useGeoJson';
 import { Check, DownloadSimple, FloppyDisk, Spinner } from '@phosphor-icons/react';
 import { neon } from '@neondatabase/serverless';
-
-const interpolateColor = (
-    value: number,
-    min: number,
-    max: number,
-    startColor: string,
-    endColor: string,
-) => {
-    const ratio = (value - min) / (max - min);
-    return Color(startColor).mix(Color(endColor), ratio).rgb().array();
-};
+import { formatValue, getBoundingBox, interpolateColor } from '@/lib/utils';
 
 type Tooltip = {
     name: string;
-    value: number;
+    value: string;
     x: number;
     y: number;
 };
 
 export const Map = () => {
+    const { data: mapEstimatesData } = useContext(MapStateContext);
     const {
-        data: {
-            estimates,
-            title,
-            color1 = '',
-            color2 = '',
-            categoryColors,
-            confidence,
-            regionKey,
-            summary,
-        },
-    } = useContext(MapStateContext);
+        estimates,
+        title,
+        color1 = '',
+        color2 = '',
+        categoryColors,
+        confidence,
+        regionKey,
+        summary,
+    } = mapEstimatesData;
     const { data: geojson, error, isLoading } = useGeoJson(regionKey);
+
     const chatWidth = 384;
     const [minValue, setMinValue] = useState<number>(0);
     const [maxValue, setMaxValue] = useState<number>(0);
-    const [data, setData] = useState<any>(null);
+    const [mergedMapData, setMergedMapData] = useState<any>(null);
     const [viewState, setViewState] = useState<MapViewState>({
         longitude: -98.5795,
         latitude: 39.8283,
@@ -61,21 +49,18 @@ export const Map = () => {
     useEffect(() => {
         if (!estimates) return;
         if (!geojson || isLoading) return;
-
-        // Convert estimates object to an array of key-value pairs
         const estimatesArray = Object.entries(estimates || {}).map(([key, value]) => ({
             state: key,
             value,
         }));
 
-        // Find min and max values
+
         const values: number[] = estimatesArray.map(item => item.value);
         const minValue = Math.min(...values);
         const maxValue = Math.max(...values);
         setMinValue(minValue);
         setMaxValue(maxValue);
 
-        // Merge state data into GeoJSON
         const mergedData = {
             ...geojson,
             features: (geojson as any)?.features?.map((feature: any) => {
@@ -91,11 +76,9 @@ export const Map = () => {
             }),
         };
 
-        // Load the merged GeoJSON data
-        setData(mergedData);
+        setMergedMapData(mergedData);
 
-        // Calculate the bounding box of the GeoJSON data using Turf.js
-        const bbox = turf.bbox(mergedData as any);
+        const bbox = getBoundingBox(mergedData, regionKey);
         if (bbox) {
             const viewport = new WebMercatorViewport({
                 width: window.innerWidth,
@@ -127,12 +110,12 @@ export const Map = () => {
         () =>
             new GeoJsonLayer({
                 id: 'geojson-layer',
-                data,
+                data: mergedMapData,
                 pickable: true,
                 onHover: ({ object, x, y }) => {
                     setTooltip(
                         object
-                            ? { name: object.properties.NAME, value: object.properties.value, x, y }
+                            ? { name: object.properties.NAME, value: formatValue(object.properties.value), x, y }
                             : null,
                     );
                 },
@@ -165,7 +148,7 @@ export const Map = () => {
                 getLineColor: [255, 255, 255, 200],
                 getLineWidth: 1,
             }),
-        [data],
+        [mergedMapData],
     );
 
     const confidenceBadge = {
@@ -190,15 +173,16 @@ export const Map = () => {
         if (isSaved) {
             setHasChanges(true);
         }
-    }, [data]);
+    }, [mapEstimatesData]);
 
     async function saveMap() {
-        if (!title || !data) return;
+        if (!title || !mapEstimatesData) return;
         ('use server');
         const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL!);
         //create the table if it does not exist
         await sql`CREATE TABLE IF NOT EXISTS maps (id SERIAL PRIMARY KEY, title TEXT, data JSONB , uuid UUID DEFAULT gen_random_uuid())`;
-        const result = await sql`INSERT INTO maps (title, data) VALUES (${title}, ${data})`;
+        const result =
+            await sql`INSERT INTO maps (title, data) VALUES (${title}, ${mapEstimatesData})`;
     }
 
     return (

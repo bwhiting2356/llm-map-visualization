@@ -2,7 +2,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 
-
 interface VisualizerProps {
     audioStream: MediaStream;
 }
@@ -15,7 +14,7 @@ function AudioVisualizer({ audioStream }: VisualizerProps) {
 
     useEffect(() => {
         let animationFrameId: number;
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
         const bufferLength = analyser.frequencyBinCount;
