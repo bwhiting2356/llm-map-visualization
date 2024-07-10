@@ -3,7 +3,6 @@ import { MapCard } from '../components/MapCard';
 
 export const ExploredMapList = () => {
     const { data: maps, isLoading } = useExploreMaps();
-    console.log(maps);
 
     if (isLoading) return <p>Loading...</p>;
     return (
