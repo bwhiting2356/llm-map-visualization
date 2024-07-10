@@ -7,7 +7,6 @@ interface MessageComponentProps {
 }
 
 const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
-    console.log('message', message);
     const { text } = message?.content[0] || '';
     if (text?.includes('[Automated]')) return null;
     if (message?.role === 'user' && !text) return null;
