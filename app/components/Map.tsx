@@ -9,7 +9,7 @@ import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
 import useGeoJson from '../../lib/useGeoJson';
-import { Check, DownloadSimple, FloppyDisk, Spinner } from '@phosphor-icons/react';
+import { Check, DownloadSimple, Spinner } from '@phosphor-icons/react';
 import { neon } from '@neondatabase/serverless';
 import { formatValue, getBoundingBox, interpolateColor } from '@/lib/utils';
 import { useAuth } from '@clerk/nextjs';
@@ -48,8 +48,15 @@ export const Map = () => {
     });
     const [tooltip, setTooltip] = useState<Tooltip | null>(null);
 
+    const handleSignInRedirect = () => {
+        window.location.href = `${window.location.origin}/sign-in?redirect_url=${window.location.href}`;
+    }
+
     useEffect(() => {
-        if (!estimates) return;
+        if (!estimates) {
+            setMergedMapData(null)
+            return;
+        };
         if (!geojson || isLoading) return;
         const estimatesArray = Object.entries(estimates || {}).map(([key, value]) => ({
             state: key,
@@ -193,6 +200,57 @@ export const Map = () => {
             await sql`INSERT INTO maps (title, data, user_id) VALUES (${title}, ${mapEstimatesData}, ${userId})`;
     }
 
+    const renderButton = () => {
+        if (!isLoaded) {
+            return (
+                <button
+                    disabled={isPending}
+                    className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100"
+                >
+                    Loading...
+                    <Spinner size={24} className="animate-spin" />
+                </button>
+            );
+        }
+        if (!userId) {
+            return (
+                
+                <button
+                    onClick={handleSignInRedirect}
+                    disabled={isPending}
+                    className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100"
+                >
+                    Log In to Save
+                    <DownloadSimple size={24} />
+                </button>
+            );
+        }
+        if (isSaved && !hasChanges) {
+            return (
+                <div className="text-sm bg-gray-700 p-2 rounded-sm flex items-center gap-2 justify-center text-white">
+                    Map saved successfully <Check size={16} className="text-green-500" />
+                    <Link href={`/saved-maps`} className="text-sm text-gray-300 underline ml-8">
+                        View saved
+                    </Link>
+                </div>
+            );
+        }
+        return (
+            <button
+                onClick={handleSaveMap}
+                disabled={isPending}
+                className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100"
+            >
+                {isPending ? 'Saving...' : 'Save map'}{' '}
+                {isPending ? (
+                    <Spinner size={24} className="animate-spin" />
+                ) : (
+                    <DownloadSimple size={24} />
+                )}
+            </button>
+        );
+    };
+
     return (
         <div className="relative h-full w-full overflow-hidden">
             <DeckGL
@@ -218,27 +276,7 @@ export const Map = () => {
                         </div>
                     </div>
                     {summary && <div className="text-gray-300 text-sm">{summary}</div>}
-                    {isSaved && !hasChanges ? (
-                        <div className="text-sm bg-gray-700 p-2 rounded-sm flex items-center gap-2 justify-center text-white">
-                            Map saved successfully <Check size={16} className="text-green-500" />
-                            <Link href={`/saved-maps`} className="text-sm text-gray-300 underline ml-8">
-                                View saved
-                            </Link>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={handleSaveMap}
-                            disabled={isPending}
-                            className="bg-white text-black p-2 rounded-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100"
-                        >
-                            {isPending ? 'Saving...' : 'Save map'}{' '}
-                            {isPending ? (
-                                <Spinner size={24} className="animate-spin" />
-                            ) : (
-                                <DownloadSimple size={24} />
-                            )}
-                        </button>
-                    )}
+                    {renderButton()}
                 </div>
             )}
             <MapLegend />

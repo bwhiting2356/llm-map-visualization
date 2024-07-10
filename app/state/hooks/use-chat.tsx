@@ -8,17 +8,17 @@ import { rehydrateMessages } from '@/lib/utils';
 export const useChat = () => {
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
-    const { setData } = useContext(MapStateContext);
+    const { data: contextData, setData } = useContext(MapStateContext);
 
-    const { id } = useParams()
-    const { data } = useSavedMap(id as string)
+    const { id } = useParams();
+    const { data } = useSavedMap(id as string);
 
     useEffect(() => {
         if (data) {
-            const messagesNew = rehydrateMessages(data)
-            setMessages(messagesNew)
+            const messagesNew = rehydrateMessages(data);
+            setMessages(messagesNew);
         }
-    }, [data])
+    }, [data]);
 
     useEffect(() => {
         const lastToolUseMessage = messages

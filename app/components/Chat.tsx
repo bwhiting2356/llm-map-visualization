@@ -24,8 +24,6 @@ export default function Chat() {
         resetThread,
     } = useContext(ChatContext);
 
-
-
     const onHandleSubmit = (e: any) => {
         e.preventDefault();
         handleSubmit(e);
@@ -153,12 +151,6 @@ const ActionButtons = () => {
     const { resetThread, isLoading } = useContext(ChatContext);
     return (
         <div className="flex justify-between mb-2">
-            {/* <button
-                disabled={isLoading}
-                className="bg-gray-100 hover:bg-gray-300 px-4 py-1 rounded-sm"
-            >
-                Popular queries
-            </button> */}
             <button disabled={isLoading} className="underline text-gray-500" onClick={resetThread}>
                 Reset thread
             </button>

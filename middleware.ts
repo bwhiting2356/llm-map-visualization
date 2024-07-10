@@ -10,7 +10,7 @@ export default clerkMiddleware(
     },
 );
 
-const isProtectedRoute = createRouteMatcher(['/map(.*)', '/saved-maps']);
+const isProtectedRoute = createRouteMatcher(['/saved-maps']);
 
 export const config = {
     matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],

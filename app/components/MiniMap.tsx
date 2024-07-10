@@ -111,7 +111,7 @@ export const MiniMap = ({ data, height = 200, width = 200 }: MiniMapProps) => {
 
     return (
         <div
-            className="relative rounded-t-lg overflow-hidden"
+            className="relative rounded-t-lg overflow-hidden bg-gray-100"
             style={{
                 width,
                 height,
