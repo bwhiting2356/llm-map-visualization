@@ -1,20 +1,28 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { searchWeb } from './serp-api';
+import { listAvailableGeojsons } from './list-regions';
 
 const anthropic = new Anthropic();
 
-
-
-
-const systemMessage = `
-  You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
+const commonSystemMessage = `
+ You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
   You are connected to a front-end interface with a map (mapbox light mode) that is able to display these statistics. 
   This tool can be used for multiple areas and sub-regions. 
+`;
+
+const systemMessageNoRegionAvailable = `
+${commonSystemMessage}
+
+An upstream process has determined that the user's requested region is not available in the database. Please inform them of this and ask for a different region.
+`;
+
+const systemMessageRegionAvailable = `
+  ${commonSystemMessage}
   
   An upstream RAG process will give you a list of sub-regions for the user's requested area 
   and populate the tool definitions with these sub-regions (for example, counties, states, provinces). However, it's possible we don't actually
   have the user's requested region in the database. If it appears not to match based on the context, please give an appropriate response
-  rather than moving formward. The region in the RAG result is : {{ REGION }}
+  rather than moving formward. The region in the RAG result is : {{ REGION }}. 
   It's understood that this is not perfect up-to-date information, and it's just an estimate based on your training data. 
   Nonetheless, it is useful for brainstorming and exploration, and you should return the confidence level of the estimates to the user.
 
@@ -47,112 +55,136 @@ const systemMessage = `
   } 
 `;
 
-const buildSystemMessage = (regionRAGResult: any) =>
-    systemMessage.replace('{{ REGION }}', regionRAGResult.region);
+const buildSystemMessage = (regionRAGResult: any) => {
+    if (regionRAGResult.subregions.length === 0) {
+        return systemMessageNoRegionAvailable;
+    }
+    return systemMessageRegionAvailable.replace('{{ REGION }}', regionRAGResult.region);
+};
 
-export const getClaudeResponse = async (messages: any, regionRAGResult: any) => {
+const buildTools = (regionRAGResult: any) => {
+    if (regionRAGResult.subregions.length === 0) {
+        return [
+            {
+                name: 'list_available_regions',
+                description: 'List all available regions',
+                input_schema: {
+                    type: 'object',
+                    properties: {},
+                },
+            },
+        ];
+    }
     const formattedSubregions = regionRAGResult.subregions.reduce((acc: any, subregion: string) => {
         acc[subregion] = { type: 'number' };
         return acc;
     }, {});
+    return [
+        {
+            name: 'list_available_regions',
+            description: 'List all available regions',
+            input_schema: {
+                type: 'object',
+                properties: {},
+            },
+        },
+        {
+            name: 'continuous_stats_estimates',
+            description: 'Provide estimated continous statistic for all sub-regions',
+            input_schema: {
+                type: 'object',
+                properties: {
+                    estimates: {
+                        type: 'object',
+                        description: 'An object with sub-region names as keys and estimated values',
+                        properties: formattedSubregions,
+                    },
+                    title: {
+                        type: 'string',
+                        description: 'Title for the map',
+                    },
+                    color1: {
+                        type: 'string',
+                        description: 'First color for the color scale (e.g., #FF0000 for red)',
+                    },
+                    color2: {
+                        type: 'string',
+                        description: 'Second color for the color scale (e.g., #0000FF for blue)',
+                    },
+                    legendSide1: {
+                        type: 'string',
+                        description:
+                            'Description for the side of the legend corresponding to color1 (e.g., Low)',
+                    },
+                    legendSide2: {
+                        type: 'string',
+                        description:
+                            'Description for the side of the legend corresponding to color2 (e.g., High)',
+                    },
+                    confidence: {
+                        type: 'string',
+                        description: 'Confidence level of the estimates (Low, Medium, High)',
+                    },
+                    regionKey: {
+                        type: 'string',
+                        description:
+                            'The name of the {{ REGION }} key to pass back to the client (this is the top level region, not subdivision)',
+                    },
+                },
+                required: [
+                    'estimates',
+                    'title',
+                    'color1',
+                    'color2',
+                    'legendSide1',
+                    'legendSide2',
+                    'confidence',
+                    'regionKey',
+                ],
+            },
+        },
+        {
+            name: 'category_stats_estimates',
+            description: 'Provide estimated categorical statistic for all sub-regions',
+            input_schema: {
+                type: 'object',
+                properties: {
+                    estimates: {
+                        type: 'object',
+                        description: 'An object with sub-region names as keys and estimated values',
+                        properties: formattedSubregions,
+                    },
+                    title: {
+                        type: 'string',
+                        description: 'Title for the map',
+                    },
+                    categoryColors: {
+                        type: 'object',
+                        description:
+                            'An object mapping category names to colors (only include categories that are in the estimates)',
+                    },
+                    confidence: {
+                        type: 'string',
+                        description: 'Confidence level of the estimates (Low, Medium, High)',
+                    },
+                    regionKey: {
+                        type: 'string',
+                        description: 'The name of the {{ REGION }} key to pass back to the client',
+                    },
+                },
+                required: ['categories', 'title', 'categoryColors', 'confidence', 'regionKey'],
+            },
+        },
+    ] as any;
+};
+
+export const getClaudeResponse = async (messages: any, regionRAGResult: any) => {
     const msg = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20240620',
         max_tokens: 3000,
         temperature: 0,
         system: buildSystemMessage(regionRAGResult),
-        tools: [
-            {
-                name: 'continuous_stats_estimates',
-                description: 'Provide estimated continous statistic for all sub-regions',
-                input_schema: {
-                    type: 'object',
-                    properties: {
-                        estimates: {
-                            type: 'object',
-                            description:
-                                'An object with sub-region names as keys and estimated values',
-                            properties: formattedSubregions,
-                        },
-                        title: {
-                            type: 'string',
-                            description: 'Title for the map',
-                        },
-                        color1: {
-                            type: 'string',
-                            description: 'First color for the color scale (e.g., #FF0000 for red)',
-                        },
-                        color2: {
-                            type: 'string',
-                            description:
-                                'Second color for the color scale (e.g., #0000FF for blue)',
-                        },
-                        legendSide1: {
-                            type: 'string',
-                            description:
-                                'Description for the side of the legend corresponding to color1 (e.g., Low)',
-                        },
-                        legendSide2: {
-                            type: 'string',
-                            description:
-                                'Description for the side of the legend corresponding to color2 (e.g., High)',
-                        },
-                        confidence: {
-                            type: 'string',
-                            description: 'Confidence level of the estimates (Low, Medium, High)',
-                        },
-                        regionKey: {
-                            type: 'string',
-                            description:
-                                'The name of the {{ REGION }} key to pass back to the client (this is the top level region, not subdivision)',
-                        },
-                    },
-                    required: [
-                        'estimates',
-                        'title',
-                        'color1',
-                        'color2',
-                        'legendSide1',
-                        'legendSide2',
-                        'confidence',
-                        'regionKey',
-                    ],
-                },
-            },
-            {
-                name: 'category_stats_estimates',
-                description: 'Provide estimated categorical statistic for all sub-regions',
-                input_schema: {
-                    type: 'object',
-                    properties: {
-                        estimates: {
-                            type: 'object',
-                            description:
-                                'An object with sub-region names as keys and estimated values',
-                            properties: formattedSubregions,
-                        },
-                        title: {
-                            type: 'string',
-                            description: 'Title for the map',
-                        },
-                        categoryColors: {
-                            type: 'object',
-                            description:
-                                'An object mapping category names to colors (only include categories that are in the estimates)',
-                        },
-                        confidence: {
-                            type: 'string',
-                            description: 'Confidence level of the estimates (Low, Medium, High)',
-                        },
-                        regionKey: {
-                            type: 'string',
-                            description:
-                                'The name of the {{ REGION }} key to pass back to the client',
-                        },
-                    },
-                    required: ['categories', 'title', 'categoryColors', 'confidence', 'regionKey'],
-                },
-            },
-        ],
+        tools: buildTools(regionRAGResult),
         messages,
     });
     return msg;
@@ -182,15 +214,16 @@ export const getClaudeResponseAndHandleToolCall = async (
                     },
                 ],
             };
-        } else {
-            const result = await searchWeb(toolCall.input);
+        } else if (name === 'list_available_regions') {
+            const regions = await listAvailableGeojsons();
+            console.log('regions', regions)
             nextMessage = {
                 role: 'user',
                 content: [
                     {
                         type: 'tool_result',
                         tool_use_id: id,
-                        content: JSON.stringify(result),
+                        content: JSON.stringify(regions)
                     },
                 ],
             };
