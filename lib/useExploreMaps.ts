@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from 'react-query';
 
 const fetchExploreMaps = async (page: number = 1): Promise<any> => {
     const response = await fetch(`/api/explore?page=${page}`);
@@ -12,6 +12,6 @@ const fetchExploreMaps = async (page: number = 1): Promise<any> => {
 
 export const useExploreMaps = (page: number = 1) => {
     return useQuery<any, Error>(['explore-maps', page], () => fetchExploreMaps(page), {
-        enabled: true // This ensures the query is always enabled
+        enabled: true, // This ensures the query is always enabled
     });
-}
+};

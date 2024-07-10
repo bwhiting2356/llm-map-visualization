@@ -3,6 +3,7 @@ import { MapCard } from '../components/MapCard';
 
 export const ExploredMapList = () => {
     const { data: maps, isLoading } = useExploreMaps();
+    
     if (isLoading) return <p>Loading...</p>;
     return (
         <div className="flex gap-8 w-full flex-wrap">
