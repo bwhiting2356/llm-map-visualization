@@ -1,99 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { searchWeb } from './serp-api';
 
-import { Pinecone } from '@pinecone-database/pinecone';
-
-const pc = new Pinecone({
-    apiKey: process.env.PINECONE_API_KEY || '',
-});
-
 const anthropic = new Anthropic();
 
-const voyageApiUrl = 'https://api.voyageai.com/v1/embeddings';
-const getEmbedding = async (text: string) => {
-    const voyageApiKey = process.env.VOYAGE_API_KEY;
 
-    const payload = {
-        input: [text],
-        model: 'voyage-large-2',
-    };
 
-    try {
-        const response = await fetch(voyageApiUrl, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${voyageApiKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Voyage API returned an error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.data[0].embedding;
-    } catch (error) {
-        console.error('Error fetching embedding from Voyage API:', error);
-        throw error;
-    }
-};
-
-const performSimilaritySearch = async (embedding: number[]) => {
-    try {
-        const index = pc.Index(process.env.PINECONE_INDEX_NAME || '');
-        const query = {
-            vector: embedding,
-            topK: 1,
-            includeMetadata: true,
-        };
-
-        const searchResult = await index.query(query);
-        return searchResult.matches[0];
-    } catch (error) {
-        console.error('Error performing similarity search with Pinecone:', error);
-        throw error;
-    }
-};
-
-const ragHelperSystemMessage = `
-You are a helper that's assistinga downstream process. 
-This system is trying to estimate statistics for a region, and subregions within it, and visualize them on a map.
-Your job is to take the message context and figture out which region the user is asking about. 
-This will then be passed into a similarity search to match what existing in the database.
-The database records look somethign like this: 
-
-{
-    region: "Chicago",
-    subregions: ["Cook County", "DuPage County", "Lake County", "Will County"]
-}
-
-Please return a similar object with the region and subregions that you think the user is asking about. 
-It is not necessary for the subregion list to be exhaustive, just enough for a similarity search to be able to match.
-***IMPORTANT*** return only the json object for the region, no other explanation is needed.
-`;
-
-export const geojsonRagHelper = async (messages: any) => {
-    const result = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20240620',
-        max_tokens: 3000,
-        temperature: 0,
-        system: ragHelperSystemMessage,
-        messages: [
-            {
-                role: 'user',
-                content: JSON.stringify(messages),
-            },
-        ],
-    });
-    const textToEmbed = (result.content[0] as any).text;
-    console.log('text to embed:', textToEmbed);
-    const embedding = await getEmbedding(textToEmbed);
-    const topResult = await performSimilaritySearch(embedding);
-    console.log('top result:', topResult);
-    return topResult?.metadata;
-};
 
 const systemMessage = `
   You are an assistant that helps a user estimate statistics for regions within an area and visualize them on a map, 
