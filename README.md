@@ -22,11 +22,6 @@ Welcome to the LLM Map Visualization project! This is a proof-of-concept prototy
 - **Data Exploration**: Explore statistical data without the need for extensive manual research.
 - **Information Retrieval**: Ask questions that require complex data retrieval and visualization.
 
-### Example Questions
-
-- **Continuous Data**: "Foggiest neighborhoods in San Francisco" - Visualizes neighborhoods by average fog density.
-- **Categorical Data**: "Most common agricultural product in California counties" - Visualizes counties by their most commonly grown crop.
-
 ## Technologies Used
 
 - **React**: Front-end UI library
@@ -51,8 +46,12 @@ Welcome to the LLM Map Visualization project! This is a proof-of-concept prototy
 
 This project was built for the [Build With Claude competition](https://docs.anthropic.com/en/build-with-claude-contest/overview). 
 
-## Demo
+## Demo and Examples
 ![Demo](https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/4026c285-d822-40bb-8228-d890d64906ad)
+<img width="597" alt="Brooklyn neighborhoods by income" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/898a9cf9-1c36-433d-8177-a2fa0ae677aa">
+<img width="504" alt="Regions of italy by avg temperature in july" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/2a5a8807-f38a-4113-9bf1-521fe74307cd">
+<img width="589" alt="German states by favorite sausage" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/24bae422-d543-406c-bb0f-a2e9b4b82c0f">
+<img width="612" alt="California counties by most common industry" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/cca57f85-619b-4f37-90d2-09b341782342">
 
 ## Collaborators
 
