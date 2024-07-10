@@ -20,7 +20,6 @@ It is not necessary for the subregion list to be exhaustive, just enough for a s
 ***IMPORTANT*** return only the json object for the region, no other explanation is needed.
 `;
 
-
 const pc = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY || '',
 });
@@ -73,10 +72,19 @@ const getEmbedding = async (text: string) => {
 };
 
 const optionChooserSystemMessage = `
-I need your help figuring out which option from a similarity search is the match for a user query. The user is looking for a specific region and subregions.
-Given the following message context, and the list of options below, please respond with the index (using 0-based indices) 
-of the item in the list that is the best fit for the user's query. If you believe none of the options are appropriate for the query, return null.
-A nearby or similar region is not a good match, only the exact region or subregion is a good match.
+I need your help figuring out which option from a similarity search is a match for a user query, if any.
+The user is looking for a specific region and subregions.
+Given the following query, and the list of options below, please respond with the index (using 0-based indices) 
+of the item in the list that the match for the user's query. If you believe none of the options are an exact match for the query, return null.
+A nearby, or more granular/less granular region is not a good match, only the exact region is a good match.
+
+Examples of good matches:
+* the user asks for {"region": "Chicago", "subRegions: ["Albany Park"...]} and the option is {"region": "Chicago", "subRegions: [Altgeld Gardens"...]}
+* the user asks for {"region": "Canada", "subRegions: ["Ontario"...]} and the option is {"region": "Canada", "subRegions: ["British Columbia"...
+
+Examples of bad matches:
+* the user asks for {"region": "Chicago", "subRegions: ["Albany Park"...]} and the option is {"region": "Illinois", "subRegions: ["Chicago"...]
+* the user asks for {"region": "Canada", "subRegions: ["Ontario"...]} and the option is {"region": "United States", "subRegions: ["New York"...
 
 <query>
 {{ QUERY }
@@ -85,10 +93,13 @@ A nearby or similar region is not a good match, only the exact region or subregi
 {{ OPTIONS }}
  </options>
 
- **IMPORTANT**
- Now please respond with only an integer index or null, no other information.
+Now please respond with your reasoning for why this matches the user's query, and isn't just a nearby or more granular/less granular region.
+As well as the index. The reasonining should be in <reasoning></reasoning> tags and the index should be in <index></index> tags.
 `;
 
+const indexRegex = /<index>(.*?)<\/index>/;
+
+const parseResult = (result: string): number => (indexRegex.exec(result)?.[1] || NaN) as number;
 
 export const geojsonRagHelper = async (messages: any) => {
     const result = await anthropic.messages.create({
@@ -110,7 +121,9 @@ export const geojsonRagHelper = async (messages: any) => {
         model: 'claude-3-5-sonnet-20240620',
         max_tokens: 3000,
         temperature: 0,
-        system: optionChooserSystemMessage.replace('{{ QUERY }}', textToEmbed).replace('{{ OPTIONS }}', JSON.stringify(topResults.matches)),
+        system: optionChooserSystemMessage
+            .replace('{{ QUERY }}', textToEmbed)
+            .replace('{{ OPTIONS }}', JSON.stringify(topResults.matches.map(m => m.metadata))),
         messages: [
             {
                 role: 'user',
@@ -118,14 +131,13 @@ export const geojsonRagHelper = async (messages: any) => {
             },
         ],
     });
-    console.log('selectedIndexResult', selectedIndexResult)
-    const index = parseInt((selectedIndexResult.content[0] as any).text);
+    const index = parseResult((selectedIndexResult.content[0] as any).text);
     if (index !== null && !isNaN(index)) {
-        return topResults.matches[index].metadata
+        return topResults.matches[index].metadata;
     } else {
         return {
             region: 'Region not found in database, unable to provide statistics',
-            subregions: []
-        }
+            subregions: [],
+        };
     }
 };

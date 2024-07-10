@@ -13,7 +13,6 @@ import { useEffect } from 'react';
 
 const siteId = process.env.NEXT_PUBLIC_HOTJAR_SITE_ID;
 const hotjarVersion = 6;
-    
 
 export default function Home() {
     useEffect(() => {

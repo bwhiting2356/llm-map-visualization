@@ -1,4 +1,5 @@
 import json
+import os
 
 def convert_geojson(input_file, output_file):
     # Read the input GeoJSON file
@@ -22,7 +23,13 @@ def convert_geojson(input_file, output_file):
     
     print(f"Converted GeoJSON saved to {output_file}")
 
-# Example usage
-input_file = 'germany-original.json'  # Update this to your input file path
-output_file = 'germany.json'
-convert_geojson(input_file, output_file)
+# Get the directory containing the neighborhood GeoJSON files
+input_directory = 'neighborhoods-master'
+output_directory = '.'
+
+# Loop through every file in the input directory
+for filename in os.listdir(input_directory):
+    if filename.endswith('.geojson'):
+        input_file_path = os.path.join(input_directory, filename)
+        output_file_path = os.path.join(output_directory, filename.replace('.geojson', '.json'))
+        convert_geojson(input_file_path, output_file_path)
