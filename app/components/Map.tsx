@@ -187,7 +187,7 @@ export const Map = () => {
         ('use server');
         const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL!);
         //create the table if it does not exist
-        await sql`CREATE TABLE IF NOT EXISTS maps (id SERIAL PRIMARY KEY, title TEXT, data JSONB , uuid UUID DEFAULT gen_random_uuid(), user_id TEXT, likes INT DEFAULT 0, dislikes INT DEFAULT 0)`;
+        await sql`CREATE TABLE IF NOT EXISTS maps (id SERIAL PRIMARY KEY, title TEXT, data JSONB , uuid UUID DEFAULT gen_random_uuid(), user_id TEXT)`;
         const result =
             await sql`INSERT INTO maps (title, data, user_id) VALUES (${title}, ${mapEstimatesData}, ${userId})`;
     }
