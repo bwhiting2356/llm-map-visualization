@@ -34,9 +34,25 @@ export const formatValue = (value: number | string) => {
 }
 
 export const rehydrateMessages = (data: any) => {
+    const firstUserMessage = {
+        id: "msg_0174sQdSLmfnpDs3ZyhLq1R1",
+        "role":"user",
+        content: [
+            {
+                "type":"text",
+                "text":"[Automated] Restore previous map state"
+            }
+        ]
+    }
     const toolUseMessage = {
+        id: "msg_0174sQdSLmfnpDs3ZyhLq1Rm",
         "role":"assistant",
         content: [
+            {
+                "type":"text",
+                "text": `Restoring map state for map: ${data.title}`
+
+            },
             {
                 "type":"tool_use",
                 "id":"toolu_0174sQdSLmfnpDs3ZyhLq1Rm",
@@ -46,10 +62,16 @@ export const rehydrateMessages = (data: any) => {
         ]
     }
     const renderedMessage = {
-        "type":"tool_result",
-        "tool_use_id":"toolu_0174sQdSLmfnpDs3ZyhLq1Rm",
-        "content":"rendered"
+        id: "msg_0174sQdSLmfnpDs3ZyhLq1R2",
+        "role": "user",
+        content: [
+            {
+                "type":"tool_result",
+                "tool_use_id":"toolu_0174sQdSLmfnpDs3ZyhLq1Rm",
+                "content":"rendered"
+            }
+        ]
     }
-    return [toolUseMessage, renderedMessage]
+    return [firstUserMessage, toolUseMessage, renderedMessage]
 
 }

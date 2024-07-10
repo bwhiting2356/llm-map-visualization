@@ -8,15 +8,28 @@ import { rehydrateMessages } from '@/lib/utils';
 export const useChat = () => {
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
-    const { data: contextData, setData } = useContext(MapStateContext);
+    const { setData } = useContext(MapStateContext);
 
     const { id } = useParams();
     const { data } = useSavedMap(id as string);
+    const [error, setError] = useState<Error | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (data) {
-            const messagesNew = rehydrateMessages(data);
-            setMessages(messagesNew);
+            const newMessages = rehydrateMessages(data);
+            setMessages(newMessages);
+            setIsLoading(true);
+            fetch('/api/chat', {
+                body: JSON.stringify({ messages: newMessages }),
+                method: 'POST',
+            })
+                .then(res => res.json())
+                .then((messages: Message[]) => {
+                    setMessages(messages);
+                })
+                .catch(err => setError(err))
+                .finally(() => setIsLoading(false));
         }
     }, [data]);
 
@@ -36,8 +49,7 @@ export const useChat = () => {
             setData(toolResult);
         }
     }, [messages]);
-    const [error, setError] = useState<Error | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+   
 
     const handleSubmit = (e?: any, query?: string) => {
         setInput('');

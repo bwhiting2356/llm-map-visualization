@@ -6,8 +6,6 @@ import MessageComponent from './MessageComponent';
 import { ArrowCircleUp, Spinner, Microphone } from '@phosphor-icons/react';
 import VoiceVisualizer from './VoiceChat';
 import { ChatContext } from '../state/chat-context';
-import { useParams } from 'next/navigation';
-import { useSavedMap } from '@/lib/useSavedMapById';
 
 export default function Chat() {
     const {
