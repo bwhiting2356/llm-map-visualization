@@ -1,6 +1,6 @@
 'use client';
 import Hotjar from '@hotjar/browser';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const siteId = process.env.NEXT_PUBLIC_HOTJAR_SITE_ID;
 const hotjarVersion = 6;
@@ -13,6 +13,22 @@ export default function Home() {
 }
 
 function SplashPage() {
+    const images = ['/images/img1.png', '/images/img2.png', '/images/img3.png', '/images/img4.png'];
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setIsTransitioning(true);
+            setTimeout(() => {
+                setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length);
+                setIsTransitioning(false);
+            }, 500); // Half of the transition duration
+        }, 5000); // Change image every 5 seconds
+
+        return () => clearInterval(intervalId);
+    }, [images.length]);
+
     return (
         <div className="bg-white">
             <div className="relative isolate pt-14">
@@ -58,10 +74,12 @@ function SplashPage() {
                             <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
                                 <img
                                     alt="App screenshot"
-                                    src="https://tailwindui.com/img/component-images/project-app-screenshot.png"
+                                    src={images[currentImageIndex]}
                                     width={2432}
                                     height={1442}
-                                    className="rounded-md shadow-2xl ring-1 ring-gray-900/10"
+                                    className={`rounded-md shadow-2xl ring-1 ring-gray-900/10 transition-opacity duration-1000 ${
+                                        isTransitioning ? 'opacity-0' : 'opacity-100'
+                                    }`}
                                 />
                             </div>
                         </div>

@@ -13,6 +13,7 @@ import { Check, DownloadSimple, FloppyDisk, Spinner } from '@phosphor-icons/reac
 import { neon } from '@neondatabase/serverless';
 import { formatValue, getBoundingBox, interpolateColor } from '@/lib/utils';
 import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 
 type Tooltip = {
     name: string;
@@ -220,6 +221,9 @@ export const Map = () => {
                     {isSaved && !hasChanges ? (
                         <div className="text-sm bg-gray-700 p-2 rounded-sm flex items-center gap-2 justify-center text-white">
                             Map saved successfully <Check size={16} className="text-green-500" />
+                            <Link href={`/saved-maps`} className="text-sm text-gray-300 underline ml-8">
+                                View saved
+                            </Link>
                         </div>
                     ) : (
                         <button

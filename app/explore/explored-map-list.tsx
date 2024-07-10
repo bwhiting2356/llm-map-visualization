@@ -5,9 +5,11 @@ export const ExploredMapList = () => {
     const { data: maps } = useExploreMaps();
     return (
         <div className="flex gap-8 w-full flex-wrap">
-            {maps?.map((map: any) => (
-                <MapCard key={map.id} map={map} />
-            ))}
+            {maps.length > 0 ? (
+                maps?.map((map: any) => <MapCard key={map.id} map={map} />)
+            ) : (
+                <p className="text-gray-500">No maps to explore</p>
+            )}
         </div>
     );
 };
@@ -15,5 +17,3 @@ export const ExploredMapList = () => {
 const MapListContainer = ({ children }: { children: React.ReactNode }) => {
     return <div className="flex gap-8 w-full flex-wrap">{children}</div>;
 };
-
-
