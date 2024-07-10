@@ -47,7 +47,6 @@ export const MiniMap = ({ data, height = 200, width = 200 }: MiniMapProps) => {
 
         const bbox = getBoundingBox(mergedData, data.regionKey);
         if (bbox.length > 0) {
-
             const viewport = new WebMercatorViewport({
                 width,
                 height,
@@ -111,11 +110,13 @@ export const MiniMap = ({ data, height = 200, width = 200 }: MiniMapProps) => {
     );
 
     return (
-        <div className="relative rounded border-gray-400 border-[1px] overflow-hidden" style={{
-            width,
-            height,
-        
-    }}>
+        <div
+            className="relative rounded-t-lg overflow-hidden"
+            style={{
+                width,
+                height,
+            }}
+        >
             <DeckGL
                 viewState={viewState}
                 onViewStateChange={({ viewState }: { viewState: any }) => setViewState(viewState)}

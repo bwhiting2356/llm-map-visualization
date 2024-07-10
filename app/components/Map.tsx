@@ -12,6 +12,8 @@ import useGeoJson from '../../lib/useGeoJson';
 import { Check, DownloadSimple, FloppyDisk, Spinner } from '@phosphor-icons/react';
 import { neon } from '@neondatabase/serverless';
 import { formatValue, getBoundingBox, interpolateColor } from '@/lib/utils';
+import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 
 type Tooltip = {
     name: string;
@@ -53,7 +55,6 @@ export const Map = () => {
             state: key,
             value,
         }));
-
 
         const values: number[] = estimatesArray.map(item => item.value);
         const minValue = Math.min(...values);
@@ -115,7 +116,12 @@ export const Map = () => {
                 onHover: ({ object, x, y }) => {
                     setTooltip(
                         object
-                            ? { name: object.properties.NAME, value: formatValue(object.properties.value), x, y }
+                            ? {
+                                  name: object.properties.NAME,
+                                  value: formatValue(object.properties.value),
+                                  x,
+                                  y,
+                              }
                             : null,
                     );
                 },
@@ -175,14 +181,16 @@ export const Map = () => {
         }
     }, [mapEstimatesData]);
 
+    const { isLoaded, userId } = useAuth();
+
     async function saveMap() {
         if (!title || !mapEstimatesData) return;
         ('use server');
         const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL!);
         //create the table if it does not exist
-        await sql`CREATE TABLE IF NOT EXISTS maps (id SERIAL PRIMARY KEY, title TEXT, data JSONB , uuid UUID DEFAULT gen_random_uuid())`;
+        await sql`CREATE TABLE IF NOT EXISTS maps (id SERIAL PRIMARY KEY, title TEXT, data JSONB , uuid UUID DEFAULT gen_random_uuid(), user_id TEXT)`;
         const result =
-            await sql`INSERT INTO maps (title, data) VALUES (${title}, ${mapEstimatesData})`;
+            await sql`INSERT INTO maps (title, data, user_id) VALUES (${title}, ${mapEstimatesData}, ${userId})`;
     }
 
     return (
@@ -213,6 +221,9 @@ export const Map = () => {
                     {isSaved && !hasChanges ? (
                         <div className="text-sm bg-gray-700 p-2 rounded-sm flex items-center gap-2 justify-center text-white">
                             Map saved successfully <Check size={16} className="text-green-500" />
+                            <Link href={`/saved-maps`} className="text-sm text-gray-300 underline ml-8">
+                                View saved
+                            </Link>
                         </div>
                     ) : (
                         <button

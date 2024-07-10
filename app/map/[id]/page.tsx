@@ -1,9 +1,8 @@
 'use client';
 
-import Chat from "../components/Chat";
-import SharedProviders from "../sharedProviders";
-import { Map } from '../components/Map';
-
+import Chat from '../../components/Chat';
+import SharedProviders from '../../sharedProviders';
+import { Map } from '../../components/Map';
 
 export default function Home() {
     return (

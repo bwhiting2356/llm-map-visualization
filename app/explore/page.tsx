@@ -1,12 +1,17 @@
-import { neon } from '@neondatabase/serverless';
+'use client';
+import React from 'react';
+import SharedProviders from '../sharedProviders';
+import { ExploredMapList } from './explored-map-list';
+import { PageContainer } from '../components/PageContainer';
 
-async function getData() {
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT * FROM estimates`;
-    return result;
-}
+const ExplorePage = () => {
+    return (
+        <SharedProviders>
+            <PageContainer title="Explore Maps">
+                <ExploredMapList />
+            </PageContainer>
+        </SharedProviders>
+    );
+};
 
-export default async function ExplorePage() {
-    const data = await getData();
-    return <div>{JSON.stringify(data)}</div>;
-}
+export default ExplorePage;
