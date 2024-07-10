@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Nunito_Sans } from 'next/font/google';
 import './globals.css';
+import { ClerkProvider, GoogleOneTap } from '@clerk/nextjs';
 
 const nunitoSans = Nunito_Sans({ subsets: ['latin'] });
 
@@ -15,8 +16,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={nunitoSans.className}>{children}</body>
-        </html>
+        <ClerkProvider>
+            <html lang="en">
+                <body className={nunitoSans.className}>
+                    <GoogleOneTap />
+                    {children}
+                </body>
+            </html>
+        </ClerkProvider>
     );
 }

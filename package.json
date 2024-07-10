@@ -13,10 +13,12 @@
     "dependencies": {
         "@ai-sdk/openai": "^0.0.24",
         "@anthropic-ai/sdk": "^0.24.3",
+        "@clerk/nextjs": "^5.2.2",
         "@deck.gl/core": "^9.0.20",
         "@deck.gl/react": "^9.0.20",
-        "@neondatabase/serverless": "^0.9.4",
+        "@headlessui/react": "^2.1.2",
         "@hotjar/browser": "^1.0.9",
+        "@neondatabase/serverless": "^0.9.4",
         "@phosphor-icons/react": "^2.1.5",
         "@pinecone-database/pinecone": "^2.2.2",
         "@radix-ui/react-dialog": "^1.0.5",
