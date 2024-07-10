@@ -1,12 +1,12 @@
 'use client';
 
 import DeckGL from '@deck.gl/react';
-import { Map as MapGL } from 'react-map-gl';
+import { Map as MapGL, MapRef } from 'react-map-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
-import { useState, useEffect, useContext, useMemo, use, useTransition } from 'react';
+import { useState, useEffect, useContext, useMemo, use, useTransition, useRef } from 'react';
 import * as turf from '@turf/turf';
 
-import { MapViewState, WebMercatorViewport } from '@deck.gl/core';
+import { FlyToInterpolator, MapViewState, WebMercatorViewport } from '@deck.gl/core';
 import { MapStateContext } from '../state/context';
 import Color from 'color';
 import MapLegend from './MapLegend';
@@ -108,10 +108,17 @@ export const Map = () => {
                 { padding: 100 },
             );
 
+            // Calculate a small offset to shift the map slightly to the left
+            const offsetRatio = -0.5; // Adjust this value to control the offset
+            const offsetLongitude = (viewport.longitude - bbox[0]) * offsetRatio;
+
             setViewState({
-                longitude: viewport.longitude,
+                longitude: viewport.longitude - offsetLongitude,
                 latitude: viewport.latitude,
                 zoom: viewport.zoom,
+                // Add a transition for smooth movement
+                transitionDuration: 1000,
+                transitionInterpolator: new FlyToInterpolator(),
             });
         }
     }, [estimates, geojson]);
