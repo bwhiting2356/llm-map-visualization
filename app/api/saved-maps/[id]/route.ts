@@ -2,7 +2,6 @@ import { neon } from '@neondatabase/serverless';
 
 export async function GET(req: Request, { params }: any) {
     const { id } = params;
-    console.log('id', id);
 
     const sql = neon(process.env.NEXT_PUBLIC_DATABASE_URL!);
     const result = await sql`SELECT * FROM maps WHERE uuid = ${id} LIMIT 1`;
