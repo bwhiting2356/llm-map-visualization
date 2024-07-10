@@ -48,13 +48,12 @@ This project was built for the [Build With Claude competition](https://docs.anth
 
 ## Demo and Examples
 ![Demo](https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/4026c285-d822-40bb-8228-d890d64906ad)
-<div><img width="200" alt="Brooklyn neighborhoods by income" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/898a9cf9-1c36-433d-8177-a2fa0ae677aa"></div>
-
-<div><img width="200" alt="Regions of italy by avg temperature in july" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/2a5a8807-f38a-4113-9bf1-521fe74307cd"></div>
-
-<div><img width="200" alt="German states by favorite sausage" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/24bae422-d543-406c-bb0f-a2e9b4b82c0f"></div>
-
-<div><img width="200" alt="California counties by most common industry" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/cca57f85-619b-4f37-90d2-09b341782342"></div>
+<div>
+    <img width="200" alt="Brooklyn neighborhoods by income" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/898a9cf9-1c36-433d-8177-a2fa0ae677aa">
+    <img width="200" alt="Regions of italy by avg temperature in july" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/2a5a8807-f38a-4113-9bf1-521fe74307cd">
+    <img width="200" alt="German states by favorite sausage" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/24bae422-d543-406c-bb0f-a2e9b4b82c0f">
+    <img width="200" alt="California counties by most common industry" src="https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/cca57f85-619b-4f37-90d2-09b341782342">
+</div>
 
 ## Collaborators
 
