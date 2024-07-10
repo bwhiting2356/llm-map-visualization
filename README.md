@@ -52,7 +52,7 @@ Welcome to the LLM Map Visualization project! This is a proof-of-concept prototy
 This project was built for the [Build With Claude competition](https://docs.anthropic.com/en/build-with-claude-contest/overview). 
 
 ## Demo
-![Demo](https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/bfe45c6b-e7a2-434f-a0ee-18902cdeea9d)
+![Demo](https://github.com/bwhiting2356/llm-map-visualization/assets/16016903/4026c285-d822-40bb-8228-d890d64906ad)
 
 ## Collaborators
 
