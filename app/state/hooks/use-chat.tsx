@@ -30,6 +30,7 @@ export const useChat = () => {
                 .then((messages: Message[]) => {
                     setMessages(messages);
                 })
+                .then(() => setError(null))
                 .catch(err => setError(err))
                 .finally(() => setIsLoading(false));
         }
@@ -85,6 +86,7 @@ export const useChat = () => {
     const resetThread = () => {
         setMessages([]);
         setData({});
+        setError(null);
     };
 
     return {
