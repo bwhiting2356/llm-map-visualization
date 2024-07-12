@@ -52,7 +52,7 @@ function SplashPage() {
                             </h1>
                             <p className="mt-6 text-lg leading-8 text-gray-600">
                                 Powered by Claude AI, this tool creates a unique data visualization
-                                experience allowing you generate complex maps from data in seconds
+                                experience allowing you to generate complex maps from data in seconds
                                 both with voice and text queries.
                             </p>
                             <div className="mt-10 flex items-center justify-center gap-x-6">
