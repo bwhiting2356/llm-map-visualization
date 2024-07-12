@@ -15,6 +15,7 @@ Welcome to the LLM Map Visualization project! This is a proof-of-concept prototy
 - **Region Recognition**: Implements a Retrieval-Augmented Generation (RAG) process to identify the region in question and find the corresponding GeoJSON file from the database.
 - **LLM Integration**: Uses Claude to process user queries and generate statistical estimates.
 - **Tool Call Integration**: Feeds identified regions into tool calls for accurate data visualization.
+- **Multimodal Query Inputs**: Users can query with both voice and text.
 
 ### Use Cases
 
