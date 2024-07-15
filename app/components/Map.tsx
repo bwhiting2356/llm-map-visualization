@@ -14,6 +14,7 @@ import { neon } from '@neondatabase/serverless';
 import { formatValue, getBoundingBox, interpolateColor } from '@/lib/utils';
 import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
+import { MapboxAttribution } from './MapboxAttribution';
 
 type Tooltip = {
     name: string;
@@ -279,6 +280,7 @@ export const Map = () => {
                     {renderButton()}
                 </div>
             )}
+            <MapboxAttribution/>
             <MapLegend />
             {tooltip?.value && (
                 <div
