@@ -7,7 +7,7 @@ import { rehydrateMapStateMessages } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 export const useChat = () => {
-    const router = useRouter()
+    const router = useRouter();
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const { setData } = useContext(MapStateContext);
@@ -52,7 +52,6 @@ export const useChat = () => {
             setData(toolResult);
         }
     }, [messages]);
-   
 
     const handleSubmit = (e?: any, query?: string) => {
         setInput('');
