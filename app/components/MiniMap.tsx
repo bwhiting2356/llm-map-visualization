@@ -74,7 +74,7 @@ export const MiniMap = ({ data, height = 200, width = 200 }: MiniMapProps) => {
     const geoJsonLayer = useMemo(
         () =>
             new GeoJsonLayer({
-                id: 'geojson-layer',
+                id: `geojson-layer-${data.regionKey}`,
                 data: mergedMapData,
                 pickable: true,
                 getFillColor: (d: any) => {
