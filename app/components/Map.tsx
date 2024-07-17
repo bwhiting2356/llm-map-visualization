@@ -18,7 +18,7 @@ import { MapboxAttribution } from './MapboxAttribution';
 
 type Tooltip = {
     name: string;
-    value: string;
+    value: string | number;
     x: number;
     y: number;
 };

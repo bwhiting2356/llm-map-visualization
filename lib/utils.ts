@@ -30,7 +30,11 @@ export const interpolateColor = (
 
 export const formatValue = (value: number | string) => {
     if (typeof value === 'string') return value;
-    return value.toLocaleString();
+    if (value?.toLocaleString) {
+        return value.toLocaleString();
+    }
+    return value
+    
 }
 
 export const rehydrateMapStateMessages = (data: any) => {
