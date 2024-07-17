@@ -51,13 +51,13 @@ export const Map = () => {
 
     const handleSignInRedirect = () => {
         window.location.href = `${window.location.origin}/sign-in?redirect_url=${window.location.href}`;
-    }
+    };
 
     useEffect(() => {
         if (!estimates) {
-            setMergedMapData(null)
+            setMergedMapData(null);
             return;
-        };
+        }
         if (!geojson || isLoading) return;
         const estimatesArray = Object.entries(estimates || {}).map(([key, value]) => ({
             state: key,
@@ -215,7 +215,6 @@ export const Map = () => {
         }
         if (!userId) {
             return (
-                
                 <button
                     onClick={handleSignInRedirect}
                     disabled={isPending}
