@@ -17,7 +17,7 @@ import Link from 'next/link';
 
 type Tooltip = {
     name: string;
-    value: string;
+    value: string | number;
     x: number;
     y: number;
 };

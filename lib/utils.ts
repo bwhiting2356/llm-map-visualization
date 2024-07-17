@@ -33,7 +33,7 @@ export const formatValue = (value: number | string) => {
     if (value?.toLocaleString) {
         return value.toLocaleString();
     }
-    return value;
+    return value
     
 }
 
