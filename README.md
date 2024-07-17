@@ -31,7 +31,7 @@ Welcome to the LLM Map Visualization project! This is a proof-of-concept prototy
 - **Mapbox and DeckGL**: WebGL-powered frameworks for mapping and data analysis
 - **Neon**: Serverless Postgres database to store saved map visualizations
 - **Pinecone**: Vector database for similarity search
-- **Claude**: Anthropic's large language model (using both haiku for simple queries and sonnet 3.5 for more complex reasoning)
+- **Claude**: Anthropic's large language model (using both Haiku for simple queries and Sonnet 3.5 for more complex reasoning)
 - **Voyage**: Embeddings ABI
 - **Clerk**: User authentication management
 
